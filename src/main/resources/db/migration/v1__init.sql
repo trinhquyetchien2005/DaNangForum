@@ -2,7 +2,7 @@ CREATE TABLE user (
                       user_id BIGINT AUTO_INCREMENT PRIMARY KEY,
                       username VARCHAR(50) NOT NULL UNIQUE,
                       email VARCHAR(100) NOT NULL UNIQUE,
-                      password VARCHAR(100) NOT NULL,
+                      password VARCHAR(100),
                       school VARCHAR(100),
                       date_of_birth DATE,
                       avatar VARCHAR(255),
@@ -10,8 +10,10 @@ CREATE TABLE user (
                       address TEXT,
                       phone_number VARCHAR(20),
                       role VARCHAR(50),
+                      provider VARCHAR(50) NOT NULL DEFAULT 'local',
                       create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
 
 CREATE TABLE post (
                       post_id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -113,3 +115,4 @@ CREATE TABLE message (
                          FOREIGN KEY (receiver_id) REFERENCES user(user_id),
                          FOREIGN KEY (groupchat_id) REFERENCES groupchat(groupchat_id)
 );
+

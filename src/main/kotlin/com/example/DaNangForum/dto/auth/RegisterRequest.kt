@@ -1,4 +1,7 @@
 package com.example.DaNangForum.dto.auth
 
-class RegisterRequest {
-}
+data class RegisterRequest(
+    val email: String,
+    val password: String,
+    val username: String
+)

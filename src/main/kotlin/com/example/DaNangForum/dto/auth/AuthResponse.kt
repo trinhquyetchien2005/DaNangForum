@@ -1,4 +1,7 @@
 package com.example.DaNangForum.dto.auth
 
-class AuthResponse {
-}
+data class AuthResponse(
+    val accessToken: String,
+    val refreshToken: String? = null  // Trả về Google ID Token nếu có
+)
+
