@@ -7,15 +7,14 @@ import com.example.DaNangForum.security.JwtUtils
 import com.example.DaNangForum.service.auth.AuthService
 import com.example.DaNangForum.service.auth.RedisService
 import com.example.DaNangForum.service.email.EmailService
+import com.example.danangforum.model.AuthProvider
 import com.example.danangforum.model.User
-import com.google.api.client.auth.oauth2.RefreshTokenRequest
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import jakarta.mail.MessagingException
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.web.bind.annotation.*
-
-
 
 @RestController
 @RequestMapping("/api/auth")
@@ -39,6 +38,31 @@ class AuthController(
         }
     }
 
+    @PostMapping("/forgotPassword")
+    fun forgotPassword(@RequestParam email: String): ApiResponse {
+        val user = userRepository.findByEmail(email)
+        ?: throw UsernameNotFoundException("User not found with email: $email")
+
+        if (user.provider == AuthProvider.GOOGLE){
+            return ApiResponse("Provider GOOGLE", null)
+        }
+
+        val otp = generateOtp() // Hàm tự tạo OTP
+        val subject = "Your OTP refresh password"
+        val body = "Your OTP refresh password is: $otp"
+
+        emailService.sendEmail(email, subject, body)
+
+        redisService.saveOtp(email, otp)
+
+        return ApiResponse("Forgot Password sent to your email", otp)
+    }
+
+    @PatchMapping("/verifyOtpPassword")
+    fun verifyOtpPassword(@RequestParam email: String, @RequestParam otp: String): ApiResponse {
+        return authService.refreshPassword(email, otp)
+    }
+
     // Gửi mã OTP
     @PostMapping("/sendOtp")
     @Throws(MessagingException::class)
@@ -56,9 +80,7 @@ class AuthController(
     }
 
     // Tạo OTP ngẫu nhiên
-    private fun generateOtp(): String {
-        return (100000..999999).random().toString()
-    }
+
 
     @PostMapping("/login")
     fun login(@RequestParam email: String, @RequestParam password: String): AuthResponse {
@@ -66,9 +88,8 @@ class AuthController(
     }
 
     @PostMapping("/refresh")
-    fun refreshToken(@RequestBody request: TokenRequest): ResponseEntity<AuthResponse> {
-        val response = authService.refreshAccessToken(request.token)
-        return ResponseEntity.ok(response)
+    fun refreshToken(@RequestParam email: String): Any {
+        return authService.refreshAccessToken(email)
     }
 
     // Đăng nhập bằng Google
@@ -123,7 +144,11 @@ class AuthController(
         }
     }
 
-    
+    @SecurityRequirement(name = "bearerAuth")
+    @PostMapping("/logout")
+    fun logout(@RequestParam email: String): ApiResponse {
+        return authService.logout(email)
+    }
 
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/me")
@@ -131,6 +156,10 @@ class AuthController(
         val token = authHeader.removePrefix("Bearer ").trim()
         val userInfo = authService.getUserInfoFromAccessToken(token)
         return ResponseEntity.ok(userInfo)
+    }
+
+    private fun generateOtp(): String {
+        return (100000..999999).random().toString()
     }
 
 }

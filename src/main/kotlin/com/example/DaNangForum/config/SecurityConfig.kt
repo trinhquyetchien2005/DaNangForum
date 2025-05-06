@@ -41,6 +41,8 @@ class SecurityConfig(
                     "/api/auth/sendOtp",
                     "/api/auth/verifyOtp",
                     "/api/auth/refresh",
+                    "/api/auth/forgotPassword",
+                    "/api/auth/verifyOtpPassword",
                     "/v3/api-docs/**",
                     "/swagger-ui.html",
                     "/swagger-ui/**",

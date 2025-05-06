@@ -7,6 +7,7 @@ import com.example.DaNangForum.dto.auth.RegisterRequest
 import com.example.DaNangForum.dto.user.UserDto
 import com.example.DaNangForum.repository.UserRepository
 import com.example.DaNangForum.security.JwtUtils
+import com.example.DaNangForum.service.email.EmailService
 import com.example.danangforum.model.AuthProvider
 import com.example.danangforum.model.User
 import com.nimbusds.jose.shaded.gson.JsonObject
@@ -14,7 +15,6 @@ import com.nimbusds.jose.shaded.gson.JsonParser
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.springframework.data.redis.core.RedisTemplate
-import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -30,6 +30,8 @@ class AuthService(
     private val passwordEncoder: PasswordEncoder,
     private val jwtUtils: JwtUtils,
     private val redisTemplate: RedisTemplate<String, String>,
+    private val redisService: RedisService,
+    private val emailService: EmailService,
 ) {
 
     fun register(request: RegisterRequest): AuthResponse {
@@ -56,7 +58,8 @@ class AuthService(
         val accessToken = jwtUtils.generateAccessToken(newUser.email)
         val refreshToken = jwtUtils.generateRefreshToken(newUser.email)
 
-        redisTemplate.opsForValue().set("refresh:${newUser.email}", refreshToken)
+        redisService.saveToken(newUser.email, refreshToken)
+//        redisTemplate.opsForValue().set("refresh:${newUser.email}", refreshToken)
 
         return AuthResponse(accessToken, refreshToken)
     }
@@ -79,8 +82,10 @@ class AuthService(
         val accessToken = jwtUtils.generateAccessToken(user.email)
         val refreshToken = jwtUtils.generateRefreshToken(user.email)
 
+        redisService.saveToken(user.email, refreshToken)
+
         // Lưu vào Redis
-        redisTemplate.opsForValue().set("refresh:${user.email}", refreshToken, Duration.ofDays(7))
+//        redisTemplate.opsForValue().set("refresh:${user.email}", refreshToken, Duration.ofDays(7))
 
         // Trả về response
         return AuthResponse(accessToken, refreshToken)
@@ -126,8 +131,10 @@ class AuthService(
             // Tạo refresh token và lưu vào Redis
             val refreshToken = jwtUtils.generateRefreshToken(email)
 
+            redisService.saveToken(email, refreshToken)
+
             // Lưu token vào Redis
-            redisTemplate.opsForValue().set("refresh:$email", refreshToken, Duration.ofDays(7))
+//            redisTemplate.opsForValue().set("refresh:$email", refreshToken, Duration.ofDays(7))
 
             // Trả về response với Google ID Token và JWT của hệ thống
             return AuthResponse(jwtToken, refreshToken)
@@ -166,24 +173,22 @@ class AuthService(
         return JsonParser.parseString(jsonResponse).asJsonObject
     }
 
-    fun refreshAccessToken(refreshToken: String): AuthResponse {
-        val email = jwtUtils.getEmailFromToken(refreshToken)
-        val key = "refresh:$email"
-        val storedRefreshToken = redisTemplate.opsForValue().get(key)
+    fun refreshAccessToken(email: String): Any {
+        val storedRefreshToken = redisService.getToken(email)
 
-        if (storedRefreshToken == null || storedRefreshToken != refreshToken) {
-            throw IllegalArgumentException("Refresh token không hợp lệ hoặc đã hết hạn")
+
+
+        if (storedRefreshToken == null) {
+            return ApiResponse("Refresh token het han, dang nhap lai", null)
         }
 
         // Tạo mới access token và refresh token
         val newAccessToken = jwtUtils.generateAccessToken(email)
         val newRefreshToken = jwtUtils.generateRefreshToken(email)
 
-        // Cập nhật Redis
-        redisTemplate.opsForValue().set(key, newRefreshToken)
-        redisTemplate.expire(key, Duration.ofDays(7))
+        redisService.saveToken(email, newRefreshToken)
 
-        return AuthResponse(newAccessToken, newRefreshToken)
+        return ApiResponse("newAccessToken", newAccessToken)
     }
 
     fun changePassword(email: String, oldPassword: String, newPassword: String): ApiResponse {
@@ -220,6 +225,44 @@ class AuthService(
             ?: throw IllegalArgumentException("Không tìm thấy người dùng")
 
         return UserDto(user.user_id!!, user.email, user.username, user.role)
+    }
+
+    fun refreshPassword(email: String, otp: String): ApiResponse {
+        val otpS = redisService.getOtp(email)
+        ?: throw UsernameNotFoundException("Otp not found with email: $email")
+
+        if (otpS == otp){
+            val user = userRepository.findByEmail(email)
+            ?: throw UsernameNotFoundException("User not found with email: $email")
+
+            val newPassword = generatePassword()
+
+            user.password = passwordEncoder.encode(newPassword)
+            userRepository.save(user)
+
+            val subject = "Your new password"
+            val body = "Your new password is: $newPassword"
+
+            emailService.sendEmail(email, subject, body)
+
+
+            return ApiResponse("Password changed successfully", null)
+        }
+        return ApiResponse("Error refresh Passeord", null)
+    }
+
+    fun logout(email: String): ApiResponse {
+        val user = userRepository.findByEmail(email)
+        ?: throw UsernameNotFoundException("User not found with email: $email")
+
+        redisService.deleteToken(email)
+        return ApiResponse("Successfully logged out", null)
+    }
+    fun generatePassword(length: Int = 10): String {
+        val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#\$%^&*()"
+        return (1..length)
+            .map { chars.random() }
+            .joinToString("")
     }
 
 }
