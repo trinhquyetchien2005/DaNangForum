@@ -16,5 +16,7 @@ interface PostRepository: JpaRepository<Post, Long> {
 
     fun findByUser(user: User): List<Post>
 
+    fun deletePostByPostId(postId: Long)
+
     fun findByGroup(group: Group): List<Post>
 }

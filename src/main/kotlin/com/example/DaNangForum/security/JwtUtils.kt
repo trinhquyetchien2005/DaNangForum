@@ -3,6 +3,7 @@ package com.example.DaNangForum.security
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import io.jsonwebtoken.security.Keys
+import jakarta.servlet.http.HttpServletRequest
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.util.*
@@ -49,6 +50,14 @@ class JwtUtils(
             .parseClaimsJws(token)
             .body
         return claims.subject
+    }
+
+    fun extractTokenFromRequest(request: HttpServletRequest): String {
+        val authorizationHeader = request.getHeader("Authorization")
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            return authorizationHeader.substring(7) // Loại bỏ "Bearer " khỏi token
+        }
+        throw IllegalArgumentException("Authorization header is missing or invalid") // Nếu không có token
     }
 }
 

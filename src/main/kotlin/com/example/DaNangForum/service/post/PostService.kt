@@ -27,4 +27,10 @@ class PostService(
 
     fun getPostsByUser(user: User): List<Post> {
         return postRepository.findByUser(user)
-    }}
+    }
+
+    fun deletePostById(id: Long): ApiResponse {
+        postRepository.deleteById(id)
+        return ApiResponse("Post deleted", null)
+    }
+}

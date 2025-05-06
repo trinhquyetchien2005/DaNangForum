@@ -48,7 +48,7 @@ class AuthService(
             phoneNumber = request.phone,
             dateOfBirth = request.dateOfBirth,
             bio = "",
-            address = "",
+            address = request.address,
             create_at = LocalDateTime.now(),
             provider = AuthProvider.LOCAL
         )

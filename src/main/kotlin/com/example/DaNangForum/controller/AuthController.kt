@@ -10,6 +10,7 @@ import com.example.DaNangForum.service.auth.RedisService
 import com.example.DaNangForum.service.email.EmailService
 import com.example.danangforum.model.AuthProvider
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
+import jakarta.mail.Address
 import jakarta.mail.MessagingException
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.userdetails.UsernameNotFoundException
@@ -29,7 +30,6 @@ class AuthController(
     // Đăng ký người dùng
     @PostMapping("/register")
     fun register(@RequestBody registerRequest: RegisterRequest): ApiResponse {
-         usernameF  = registerRequest.username
         return try {
             sendOtp(registerRequest.email)
             ApiResponse("OTP sent to your email", null)
@@ -104,13 +104,13 @@ class AuthController(
     }
 
     @PostMapping("/verifyOtp")
-    fun verifyOtp(@RequestParam username: String,@RequestParam email: String, @RequestParam otp: String, @RequestParam password: String, @RequestParam dateOfBirth: LocalDate, @RequestParam phone: String, @RequestParam school: String): ApiResponse {
+    fun verifyOtp(@RequestParam username: String,@RequestParam email: String,@RequestParam address: String, @RequestParam otp: String, @RequestParam password: String, @RequestParam dateOfBirth: LocalDate, @RequestParam phone: String, @RequestParam school: String): ApiResponse {
         val storedOtp = redisService.getOtp(email)
 
         return if (storedOtp != null && storedOtp == otp) {
             try {
                 // OTP hợp lệ, thực hiện đăng ký với mật khẩu
-                val registerRequest = RegisterRequest(username, email, dateOfBirth, phone, password, school )
+                val registerRequest = RegisterRequest(username, email, address, dateOfBirth, phone, password, school )
 
                 // Kiểm tra nếu email đã tồn tại trong hệ thống
                 if (userRepository.existsByEmail(email)) {
@@ -160,6 +160,7 @@ class AuthController(
 
     private fun generateOtp(): String {
         return (100000..999999).random().toString()
+
     }
 
 }
