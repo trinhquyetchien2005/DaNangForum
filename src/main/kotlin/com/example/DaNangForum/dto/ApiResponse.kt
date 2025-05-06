@@ -1,4 +1,4 @@
-package com.example.DaNangForum.dto.auth
+package com.example.DaNangForum.dto
 
 data class ApiResponse(
     val message: String,

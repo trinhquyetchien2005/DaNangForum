@@ -1,4 +1,21 @@
-package com.example.DaNangForum.model
+package com.example.danangforum.model
 
-class Block {
-}
+import jakarta.persistence.*
+import java.time.LocalDateTime
+
+@Entity
+@Table(name = "block")
+data class Block(
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    val id: Long = 0,  // ID tự động tăng
+
+    @ManyToOne(fetch = FetchType.LAZY)  // Quan hệ với người chặn (blocker)
+    @JoinColumn(name = "blocker_id", nullable = false)
+    val blocker: User,  // Người chặn
+
+    @ManyToOne(fetch = FetchType.LAZY)  // Quan hệ với người bị chặn (blocked)
+    @JoinColumn(name = "blocked_id", nullable = false)
+    val blocked: User,  // Người bị chặn
+
+)

@@ -46,6 +46,8 @@ class SecurityConfig(
                     "/v3/api-docs/**",
                     "/swagger-ui.html",
                     "/swagger-ui/**",
+                    "/api/post/all",
+                    "/api/post/{id}",
                     "/webjars/**"
                 ).permitAll()
                 it.anyRequest().authenticated()

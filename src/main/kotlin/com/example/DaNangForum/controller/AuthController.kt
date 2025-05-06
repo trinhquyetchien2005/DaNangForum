@@ -1,5 +1,6 @@
 package com.example.DaNangForum.controller
 
+import com.example.DaNangForum.dto.ApiResponse
 import com.example.DaNangForum.dto.auth.*
 import com.example.DaNangForum.dto.user.UserDto
 import com.example.DaNangForum.repository.UserRepository
@@ -8,13 +9,12 @@ import com.example.DaNangForum.service.auth.AuthService
 import com.example.DaNangForum.service.auth.RedisService
 import com.example.DaNangForum.service.email.EmailService
 import com.example.danangforum.model.AuthProvider
-import com.example.danangforum.model.User
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import jakarta.mail.MessagingException
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.web.bind.annotation.*
+import java.time.LocalDate
 
 @RestController
 @RequestMapping("/api/auth")
@@ -104,13 +104,13 @@ class AuthController(
     }
 
     @PostMapping("/verifyOtp")
-    fun verifyOtp(@RequestParam email: String, @RequestParam otp: String, @RequestParam password: String): ApiResponse {
+    fun verifyOtp(@RequestParam username: String,@RequestParam email: String, @RequestParam otp: String, @RequestParam password: String, @RequestParam dateOfBirth: LocalDate, @RequestParam phone: String, @RequestParam school: String): ApiResponse {
         val storedOtp = redisService.getOtp(email)
 
         return if (storedOtp != null && storedOtp == otp) {
             try {
                 // OTP hợp lệ, thực hiện đăng ký với mật khẩu
-                val registerRequest = RegisterRequest(email, password, usernameF)
+                val registerRequest = RegisterRequest(username, email, dateOfBirth, phone, password, school )
 
                 // Kiểm tra nếu email đã tồn tại trong hệ thống
                 if (userRepository.existsByEmail(email)) {

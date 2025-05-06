@@ -17,7 +17,6 @@ data class User(
 
     var password: String? = null, // Nullable khi dùng OAuth
 
-    @Column(unique = true)
     val email: String,
 
     val role: String,

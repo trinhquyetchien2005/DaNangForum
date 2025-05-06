@@ -1,6 +1,6 @@
 package com.example.DaNangForum.service.auth
 
-import com.example.DaNangForum.dto.auth.ApiResponse
+import com.example.DaNangForum.dto.ApiResponse
 import com.example.DaNangForum.dto.auth.AuthResponse
 import com.example.DaNangForum.dto.auth.LoginRequest
 import com.example.DaNangForum.dto.auth.RegisterRequest
@@ -21,7 +21,6 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException
 import org.springframework.security.oauth2.core.OAuth2Error
 import org.springframework.stereotype.Service
-import java.time.Duration
 import java.time.LocalDateTime
 
 @Service
@@ -44,9 +43,10 @@ class AuthService(
             email = request.email,
             password = passwordEncoder.encode(request.password),
             role = "USER",
-            school = "",
+            school = request.school,
             avatar = "",
-            phoneNumber = "",
+            phoneNumber = request.phone,
+            dateOfBirth = request.dateOfBirth,
             bio = "",
             address = "",
             create_at = LocalDateTime.now(),
@@ -83,9 +83,6 @@ class AuthService(
         val refreshToken = jwtUtils.generateRefreshToken(user.email)
 
         redisService.saveToken(user.email, refreshToken)
-
-        // Lưu vào Redis
-//        redisTemplate.opsForValue().set("refresh:${user.email}", refreshToken, Duration.ofDays(7))
 
         // Trả về response
         return AuthResponse(accessToken, refreshToken)
