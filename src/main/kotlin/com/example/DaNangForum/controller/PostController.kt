@@ -1,5 +1,6 @@
 package com.example.DaNangForum.controller
 
+import com.example.DaNangForum.dto.post.PostUpdateRequest
 import com.example.DaNangForum.repository.PostRepository
 import com.example.DaNangForum.repository.UserRepository
 import com.example.DaNangForum.security.JwtUtils
@@ -54,5 +55,14 @@ class PostController(
         return ResponseEntity.ok().build()
     }
 
+    @PostMapping("/create")
+    fun createPost(){
+
+    }
+
+    @PutMapping("/update/{id}")
+    fun updatePostById(@PathVariable id: Long, @RequestBody post: PostUpdateRequest){
+
+    }
 
 }

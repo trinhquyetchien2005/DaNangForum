@@ -59,7 +59,6 @@ class AuthService(
         val refreshToken = jwtUtils.generateRefreshToken(newUser.email)
 
         redisService.saveToken(newUser.email, refreshToken)
-//        redisTemplate.opsForValue().set("refresh:${newUser.email}", refreshToken)
 
         return AuthResponse(accessToken, refreshToken)
     }
@@ -214,14 +213,14 @@ class AuthService(
         return ApiResponse("Password changed successfully",null)
     }
 
-    fun getUserInfoFromAccessToken(accessToken: String): UserDto {
+    fun getUserInfoFromAccessToken(accessToken: String): ApiResponse {
         val email = jwtUtils.getEmailFromToken(accessToken)
             ?: throw IllegalArgumentException("Access token không hợp lệ")
 
         val user = userRepository.findByEmail(email)
             ?: throw IllegalArgumentException("Không tìm thấy người dùng")
 
-        return UserDto(user.user_id!!, user.email, user.username, user.role)
+        return ApiResponse("User info: ", user)
     }
 
     fun refreshPassword(email: String, otp: String): ApiResponse {

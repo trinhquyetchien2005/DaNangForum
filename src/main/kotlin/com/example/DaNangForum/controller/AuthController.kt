@@ -26,7 +26,6 @@ class AuthController(
     private val redisService: RedisService,
     private val userRepository: UserRepository,
 ) {
-    private var usernameF: String = ""
     // Đăng ký người dùng
     @PostMapping("/register")
     fun register(@RequestBody registerRequest: RegisterRequest): ApiResponse {
