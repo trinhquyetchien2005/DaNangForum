@@ -12,26 +12,27 @@ data class User(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val userId: Long = 0,
 
-    @Column(unique = true)
-    val username: String,
+
+    var username: String,
 
     var password: String? = null, // Nullable khi dùng OAuth
 
+    @Column(unique = true)
     val email: String,
 
     val role: String,
 
-    val school: String,
+    var school: String,
 
-    val avatar: String,
+    var avatar: String,
 
     val phoneNumber: String,
 
-    val bio: String,
+    var bio: String,
 
-    val dateOfBirth: LocalDate? = null,
+    var dateOfBirth: LocalDate? = null,
 
-    val address: String,
+    var address: String,
 
     @CreatedDate
     val create_at: LocalDateTime,

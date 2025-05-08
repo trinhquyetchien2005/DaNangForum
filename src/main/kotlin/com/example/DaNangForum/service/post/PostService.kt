@@ -4,6 +4,7 @@ package com.example.DaNangForum.service.post
 import com.example.DaNangForum.dto.ApiResponse
 import com.example.DaNangForum.dto.post.PostRequest
 import com.example.DaNangForum.dto.post.PostUpdateRequest
+import com.example.DaNangForum.dto.post.PostWithStatsResponse
 import com.example.DaNangForum.repository.LikeRepository
 import com.example.DaNangForum.repository.PostRepository
 import com.example.DaNangForum.repository.UserRepository
@@ -24,10 +25,6 @@ class PostService(
     private val likeRepository: LikeRepository,
     private val commentRepository: commentRepository
 ) {
-
-    fun getAllPosts(): List<Post> {
-        return postRepository.findAll()
-    }
 
     fun getPostById(id: Long): ResponseEntity<Post> {
         val post = postRepository.findByPostId(id)
@@ -122,8 +119,8 @@ class PostService(
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null)
         }
 
-        if (allComment == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null)
+        if (allComment == null || allComment.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null)
         }
         return ResponseEntity.status(HttpStatus.OK).body(allComment)
     }
@@ -185,4 +182,17 @@ class PostService(
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse("comment", comment))
     }
+
+    fun getAllPostsWithStats(): ResponseEntity<List<PostWithStatsResponse>> {
+        val posts = postRepository.findAll()
+
+        val postStats = posts.map { post ->
+            val likeCount = likeRepository.countByPost_PostId(post.postId!!)
+            val commentCount = commentRepository.countByPost_PostId(post.postId!!)
+            PostWithStatsResponse(post, likeCount, commentCount)
+        }
+
+        return ResponseEntity.ok(postStats)
+    }
+
 }

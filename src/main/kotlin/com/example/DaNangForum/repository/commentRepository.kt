@@ -7,4 +7,6 @@ import org.springframework.stereotype.Repository
 @Repository
 interface commentRepository: JpaRepository<Comment, Long> {
     fun findCommentsByPost_PostId(postPostId: Long): MutableList<Comment>
+    fun countByPost_PostId(postId: Long): Int
+
 }

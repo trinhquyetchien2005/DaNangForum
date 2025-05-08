@@ -3,6 +3,7 @@ package com.example.DaNangForum.controller
 import com.example.DaNangForum.dto.ApiResponse
 import com.example.DaNangForum.dto.post.PostRequest
 import com.example.DaNangForum.dto.post.PostUpdateRequest
+import com.example.DaNangForum.dto.post.PostWithStatsResponse
 import com.example.DaNangForum.repository.PostRepository
 import com.example.DaNangForum.repository.UserRepository
 import com.example.DaNangForum.security.JwtUtils
@@ -28,10 +29,10 @@ class PostController(
     private val authService: AuthService,
 ){
     @GetMapping("/all")
-    fun allPosts(): ResponseEntity<List<Post>> {
-    val response =  postService.getAllPosts()
-        return ResponseEntity.ok(response)
+    fun getAllPostsForHome(): ResponseEntity<List<PostWithStatsResponse>> {
+        return postService.getAllPostsWithStats()
     }
+
 
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/{id}")

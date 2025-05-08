@@ -5,6 +5,6 @@ import com.example.DaNangForum.dto.user.UserDto
 data class AuthResponse(
     val accessToken: String? = null,
     val refreshToken: String? = null,
-    val userDto: UserDto? = null
+    val user: UserDto? = null
 )
 

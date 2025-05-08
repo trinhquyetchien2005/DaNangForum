@@ -88,8 +88,10 @@ class AuthService(
 
         redisService.saveToken(user.email, refreshToken)
 
+        val userDto = UserDto(user.userId, user.email, user.username, user.avatar)
+
         // Trả về response
-        return ResponseEntity.status(HttpStatus.OK).body(AuthResponse(accessToken, refreshToken, null))
+        return ResponseEntity.status(HttpStatus.OK).body(AuthResponse(accessToken, refreshToken, userDto))
     }
 
     fun loginWithGoogle(token: String): ResponseEntity<AuthResponse> {
@@ -112,7 +114,7 @@ class AuthService(
                 // Kiểm tra provider
                 if (existingUser.provider != AuthProvider.GOOGLE) {
                     // Nếu người dùng đã tồn tại nhưng dùng provider khác, ném lỗi
-                    throw IllegalArgumentException("This account was registered with ${existingUser.provider}. Please log in with the appropriate provider.")
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(AuthResponse(null, null))
                 }
                 // Nếu người dùng đã tồn tại và sử dụng Google, tạo JWT mới
                 jwtToken = jwtUtils.generateAccessToken(existingUser.email)
