@@ -2,9 +2,11 @@ package com.example.DaNangForum.service.post
 
 
 import com.example.DaNangForum.dto.ApiResponse
+import com.example.DaNangForum.dto.post.PostGetRequest
 import com.example.DaNangForum.dto.post.PostRequest
 import com.example.DaNangForum.dto.post.PostUpdateRequest
 import com.example.DaNangForum.dto.post.PostWithStatsResponse
+import com.example.DaNangForum.dto.user.UserDto
 import com.example.DaNangForum.repository.LikeRepository
 import com.example.DaNangForum.repository.PostRepository
 import com.example.DaNangForum.repository.UserRepository
@@ -184,15 +186,27 @@ class PostService(
     }
 
     fun getAllPostsWithStats(): ResponseEntity<List<PostWithStatsResponse>> {
+
         val posts = postRepository.findAll()
 
         val postStats = posts.map { post ->
-            val likeCount = likeRepository.countByPost_PostId(post.postId!!)
-            val commentCount = commentRepository.countByPost_PostId(post.postId!!)
-            PostWithStatsResponse(post, likeCount, commentCount)
+            val likeCount = likeRepository.countByPost_PostId(post.postId)
+            val commentCount = commentRepository.countByPost_PostId(post.postId)
+
+            val user = post.user
+                val userdto = UserDto(user.userId, user.username, user.email, user.avatar)
+                val postdto = PostGetRequest(
+                    userdto = userdto,
+                    content = post.content,
+                    image = post.image,
+                    video = post.video,
+                    create_at = post.createAt
+                )
+                PostWithStatsResponse(postdto, likeCount, commentCount)
+
         }
 
-        return ResponseEntity.ok(postStats)
+        return ResponseEntity.status(200).body(postStats)
     }
 
 }
