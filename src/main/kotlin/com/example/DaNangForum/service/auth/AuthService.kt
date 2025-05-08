@@ -15,7 +15,10 @@ import com.nimbusds.jose.shaded.gson.JsonParser
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.springframework.data.redis.core.RedisTemplate
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.security.authentication.BadCredentialsException
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException
@@ -33,7 +36,7 @@ class AuthService(
     private val emailService: EmailService,
 ) {
 
-    fun register(request: RegisterRequest): AuthResponse {
+    fun register(request: RegisterRequest): ResponseEntity<AuthResponse> {
         if (userRepository.existsByEmail(request.email)) {
             throw IllegalArgumentException("Email đã tồn tại")
         }
@@ -60,23 +63,25 @@ class AuthService(
 
         redisService.saveToken(newUser.email, refreshToken)
 
-        return AuthResponse(accessToken, refreshToken)
+        return ResponseEntity.status(HttpStatus.CREATED).body(AuthResponse(accessToken, refreshToken))
     }
 
-    fun login(request: LoginRequest): AuthResponse {
+    fun login(request: LoginRequest): ResponseEntity<AuthResponse>  {
+
         val user = userRepository.findByEmail(request.email)
-            ?: throw UsernameNotFoundException("Tài khoản không tồn tại")
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(AuthResponse(null, null))
+            }
 
         // Kiểm tra tài khoản có phải tài khoản đăng nhập Google không
         if (user.provider != AuthProvider.LOCAL) {
-            throw BadCredentialsException("Tài khoản này chỉ hỗ trợ đăng nhập bằng Google")
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(AuthResponse(null, null))
         }
 
         // Kiểm tra mật khẩu
         if (!passwordEncoder.matches(request.password, user.password)) {
-            throw BadCredentialsException("Sai email hoặc mật khẩu")
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(AuthResponse(null, null))
         }
-
         // Tạo access token và refresh token
         val accessToken = jwtUtils.generateAccessToken(user.email)
         val refreshToken = jwtUtils.generateRefreshToken(user.email)
@@ -84,13 +89,18 @@ class AuthService(
         redisService.saveToken(user.email, refreshToken)
 
         // Trả về response
-        return AuthResponse(accessToken, refreshToken)
+        return ResponseEntity.status(HttpStatus.OK).body(AuthResponse(accessToken, refreshToken, null))
     }
 
-    fun loginWithGoogle(token: String): AuthResponse {
+    fun loginWithGoogle(token: String): ResponseEntity<AuthResponse> {
+        var newUser = User()
         try {
             // Xác minh token Google và lấy thông tin người dùng
             val googleUserInfo = verifyGoogleToken(token)
+
+            if (googleUserInfo == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(AuthResponse(null, null))
+            }
 
             val email = googleUserInfo.get("email").asString
 
@@ -108,7 +118,7 @@ class AuthService(
                 jwtToken = jwtUtils.generateAccessToken(existingUser.email)
             } else {
                 // Nếu chưa tồn tại, tạo mới người dùng và trả về JWT
-                val newUser = User(
+                newUser = User(
                     username = googleUserInfo.get("name").asString,
                     email = email,
                     role = "USER", // Có thể tùy chỉnh role ở đây
@@ -124,21 +134,17 @@ class AuthService(
                 jwtToken = jwtUtils.generateAccessToken(newUser.email)
             }
 
-            // Tạo refresh token và lưu vào Redis
             val refreshToken = jwtUtils.generateRefreshToken(email)
 
             redisService.saveToken(email, refreshToken)
 
-            // Lưu token vào Redis
-//            redisTemplate.opsForValue().set("refresh:$email", refreshToken, Duration.ofDays(7))
+            val newUserDto = UserDto(newUser.userId, newUser.email, newUser.username, newUser.avatar,)
 
-            // Trả về response với Google ID Token và JWT của hệ thống
-            return AuthResponse(jwtToken, refreshToken)
+            return ResponseEntity.status(200).body(AuthResponse(jwtToken, refreshToken, newUserDto))
 
         } catch (e: Exception) {
             // Tạo OAuth2Error và ném OAuth2AuthenticationException nếu xác minh token thất bại
-            val oauth2Error = OAuth2Error("invalid_token", "Google authentication failed", null)
-            throw OAuth2AuthenticationException(oauth2Error, e)
+           return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(AuthResponse(null, null))
         }
     }
 
@@ -169,13 +175,11 @@ class AuthService(
         return JsonParser.parseString(jsonResponse).asJsonObject
     }
 
-    fun refreshAccessToken(email: String): Any {
+    fun refreshAccessToken(email: String): ResponseEntity<ApiResponse> {
         val storedRefreshToken = redisService.getToken(email)
 
-
-
         if (storedRefreshToken == null) {
-            return ApiResponse("Refresh token het han, dang nhap lai", null)
+            return ResponseEntity.status(HttpStatus.GONE).body(ApiResponse("Refresh token het han", null))
         }
 
         // Tạo mới access token và refresh token
@@ -184,48 +188,48 @@ class AuthService(
 
         redisService.saveToken(email, newRefreshToken)
 
-        return ApiResponse("newAccessToken", newAccessToken)
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse("New access token", newAccessToken))
     }
 
-    fun changePassword(email: String, oldPassword: String, newPassword: String): ApiResponse {
+    fun changePassword(email: String, oldPassword: String, newPassword: String): ResponseEntity<ApiResponse> {
         val user = userRepository.findByEmail(email)
-            ?: throw UsernameNotFoundException("User not found with email: $email")
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse("User not found", null))
+        }
 
-        // Kiểm tra tài khoản đăng nhập qua Google không cho phép đổi mật khẩu
         if (user.provider == AuthProvider.GOOGLE) {
-            throw BadCredentialsException("Google account detected. Please log in with the appropriate provider.")
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse("Account is Google", null))
         }
 
         // Kiểm tra mật khẩu cũ và mật khẩu mới không trùng nhau
         if (oldPassword == newPassword) {
-            throw BadCredentialsException("New password cannot be the same as the old password")
+            return ResponseEntity.status(400).body(ApiResponse("Password does not match", null))
         }
 
         // Kiểm tra mật khẩu cũ có đúng không
         if (!passwordEncoder.matches(oldPassword, user.password)) {
-            throw BadCredentialsException("Old password does not match the current password")
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse("Password does not match", null))
         }
 
-        // Mã hóa mật khẩu mới trước khi lưu
         user.password = passwordEncoder.encode(newPassword)
         userRepository.save(user)
 
-        return ApiResponse("Password changed successfully",null)
+        return return ResponseEntity.status(HttpStatus.OK).body(ApiResponse("Changed password", user.password))
     }
 
-    fun getUserInfoFromAccessToken(accessToken: String): ApiResponse {
-        val email = jwtUtils.getEmailFromToken(accessToken)
-            ?: throw IllegalArgumentException("Access token không hợp lệ")
+    fun getUserInfoFromAccessToken(): ResponseEntity<ApiResponse> {
+        val auth = SecurityContextHolder.getContext().authentication
+        val userDetails = auth.name
+        val user = userRepository.findByEmail(userDetails)
 
-        val user = userRepository.findByEmail(email)
-            ?: throw IllegalArgumentException("Không tìm thấy người dùng")
-
-        return ApiResponse("User info: ", user)
+        return ResponseEntity.status(200).body(ApiResponse("info: ",user))
     }
 
-    fun refreshPassword(email: String, otp: String): ApiResponse {
+    fun refreshPassword(email: String, otp: String): ResponseEntity<ApiResponse> {
         val otpS = redisService.getOtp(email)
-        ?: throw UsernameNotFoundException("Otp not found with email: $email")
+        if(otpS == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse("Invalid otp", null))
+        }
 
         if (otpS == otp){
             val user = userRepository.findByEmail(email)
@@ -242,17 +246,17 @@ class AuthService(
             emailService.sendEmail(email, subject, body)
 
 
-            return ApiResponse("Password changed successfully", null)
+            return ResponseEntity.status(HttpStatus.OK).body(ApiResponse("Password changed successfully", null))
         }
-        return ApiResponse("Error refresh Passeord", null)
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse("Password does not match the current password", null))
     }
 
-    fun logout(email: String): ApiResponse {
+    fun logout(email: String): ResponseEntity<ApiResponse> {
         val user = userRepository.findByEmail(email)
         ?: throw UsernameNotFoundException("User not found with email: $email")
 
         redisService.deleteToken(email)
-        return ApiResponse("Successfully logged out", null)
+        return ResponseEntity.status(200).body(ApiResponse("logout", null))
     }
     fun generatePassword(length: Int = 10): String {
         val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#\$%^&*()"

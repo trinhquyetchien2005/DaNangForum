@@ -9,10 +9,13 @@ import com.example.DaNangForum.service.auth.AuthService
 import com.example.DaNangForum.service.auth.RedisService
 import com.example.DaNangForum.service.email.EmailService
 import com.example.danangforum.model.AuthProvider
+import com.google.protobuf.Api
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import jakarta.mail.Address
 import jakarta.mail.MessagingException
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
@@ -28,22 +31,19 @@ class AuthController(
 ) {
     // Đăng ký người dùng
     @PostMapping("/register")
-    fun register(@RequestBody registerRequest: RegisterRequest): ApiResponse {
-        return try {
-            sendOtp(registerRequest.email)
-            ApiResponse("OTP sent to your email", null)
-        } catch (ex: Exception) {
-            ApiResponse(ex.message ?: "Registration failed", null)
-        }
+    fun register(@RequestBody registerRequest: RegisterRequest): ResponseEntity<ApiResponse> {
+
+            val otp = sendOtp(registerRequest.email)
+            return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse("", otp))
     }
 
     @PostMapping("/forgotPassword")
-    fun forgotPassword(@RequestParam email: String): ApiResponse {
+    fun forgotPassword(@RequestParam email: String): ResponseEntity<ApiResponse> {
         val user = userRepository.findByEmail(email)
         ?: throw UsernameNotFoundException("User not found with email: $email")
 
         if (user.provider == AuthProvider.GOOGLE){
-            return ApiResponse("Provider GOOGLE", null)
+            return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(ApiResponse("Provider GOOGLE", null))
         }
 
         val otp = generateOtp() // Hàm tự tạo OTP
@@ -54,56 +54,56 @@ class AuthController(
 
         redisService.saveOtp(email, otp)
 
-        return ApiResponse("Forgot Password sent to your email", otp)
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse("Otp sent", null))
     }
 
     @PatchMapping("/verifyOtpPassword")
-    fun verifyOtpPassword(@RequestParam email: String, @RequestParam otp: String): ApiResponse {
+    fun verifyOtpPassword(@RequestParam email: String, @RequestParam otp: String): Any {
         return authService.refreshPassword(email, otp)
     }
 
     // Gửi mã OTP
     @PostMapping("/sendOtp")
     @Throws(MessagingException::class)
-    fun sendOtp(@RequestParam email: String) {
-        val otp = generateOtp() // Hàm tự tạo OTP
-        val subject = "Your OTP Code"
-        val body = "Your OTP code is: $otp"
+    fun sendOtp(@RequestParam email: String): ResponseEntity<ApiResponse> {
+        try {
+            val otp = generateOtp() // Hàm tự tạo OTP
+            val subject = "Your OTP Code"
+            val body = "Your OTP code is: $otp"
 
-        emailService.sendEmail(email, subject, body)
+            emailService.sendEmail(email, subject, body)
 
-        // Lưu OTP vào Redis (hoặc database)
-        redisService.saveOtp(email, otp)
+            // Lưu OTP vào Redis (hoặc database)
+            redisService.saveOtp(email, otp)
 
-        println("OTP sent to $email: $otp")
+            return ResponseEntity.status(HttpStatus.OK).body(ApiResponse("Otp sent", otp))
+        }catch (e: MessagingException){
+         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse("Error", e))
+        }
     }
 
     // Tạo OTP ngẫu nhiên
 
 
     @PostMapping("/login")
-    fun login(@RequestParam email: String, @RequestParam password: String): AuthResponse {
+    fun login(@RequestParam email: String, @RequestParam password: String):ResponseEntity<AuthResponse> {
         return authService.login(LoginRequest(email, password))
     }
 
     @PostMapping("/refresh")
-    fun refreshToken(@RequestParam email: String): Any {
+    fun refreshToken(@RequestParam email: String): ResponseEntity<ApiResponse> {
         return authService.refreshAccessToken(email)
     }
 
     // Đăng nhập bằng Google
     @PostMapping("/google")
-    fun googleLogin(@RequestParam("token") token: String): ApiResponse {
-        return try {
-            val jwt = authService.loginWithGoogle(token)
-            ApiResponse("Login with Google successful", jwt)
-        } catch (ex: Exception) {
-            ApiResponse(ex.message ?: "Google login failed", null)
-        }
+    fun googleLogin(@RequestParam("token") token: String): ResponseEntity<AuthResponse> {
+        return authService.loginWithGoogle(token)
+
     }
 
     @PostMapping("/verifyOtp")
-    fun verifyOtp(@RequestParam username: String,@RequestParam email: String,@RequestParam address: String, @RequestParam otp: String, @RequestParam password: String, @RequestParam dateOfBirth: LocalDate, @RequestParam phone: String, @RequestParam school: String): ApiResponse {
+    fun verifyOtp(@RequestParam username: String,@RequestParam email: String,@RequestParam address: String, @RequestParam otp: String, @RequestParam password: String, @RequestParam dateOfBirth: LocalDate, @RequestParam phone: String, @RequestParam school: String): ResponseEntity<ApiResponse> {
         val storedOtp = redisService.getOtp(email)
 
         return if (storedOtp != null && storedOtp == otp) {
@@ -113,19 +113,19 @@ class AuthController(
 
                 // Kiểm tra nếu email đã tồn tại trong hệ thống
                 if (userRepository.existsByEmail(email)) {
-                    return ApiResponse("Email already exists", null)
+                    return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse("User already exists", null))
                 }
 
                 // Đăng ký người dùng và lấy token
                 val authResponse = authService.register(registerRequest)
 
                 // Trả về thông báo thành công và thông tin token
-                return ApiResponse("Registration successful", authResponse)
+                return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse("Registration successful", authResponse))
             } catch (ex: Exception) {
-                return ApiResponse("Registration failed: ${ex.message}", null)
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse("Registration failed", null))
             }
         } else {
-            return ApiResponse("Invalid OTP", null)
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse("Otp not true", null))
         }
     }
 
@@ -135,31 +135,27 @@ class AuthController(
         @RequestParam email: String,
         @RequestParam oldPassword: String,
         @RequestParam newPassword: String
-    ): ApiResponse {
-        return try {
-            authService.changePassword(email, oldPassword, newPassword)
-        } catch (e: Exception) {
-            ApiResponse("An error occurred", null)
-        }
+    ): ResponseEntity<ApiResponse> {
+        return authService.changePassword(email, oldPassword, newPassword)
     }
 
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/logout")
-    fun logout(@RequestParam email: String): ApiResponse {
+    fun logout(): ResponseEntity<ApiResponse> {
+        val auth = SecurityContextHolder.getContext().authentication
+        val email = auth.name
         return authService.logout(email)
     }
 
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/me")
-    fun getCurrentUser(@RequestHeader("Authorization") authHeader: String): ResponseEntity<UserDto> {
-        val token = authHeader.removePrefix("Bearer ").trim()
-        val userInfo = authService.getUserInfoFromAccessToken(token)
-        return ResponseEntity.ok(userInfo)
+    fun getCurrentUser(): ResponseEntity<ApiResponse> {
+        return authService.getUserInfoFromAccessToken()
+
     }
 
     private fun generateOtp(): String {
         return (100000..999999).random().toString()
-
     }
 
 }

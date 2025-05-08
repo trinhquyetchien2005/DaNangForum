@@ -10,7 +10,7 @@ import java.time.LocalDateTime
 data class User(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val user_id: Long = 0,
+    val userId: Long = 0,
 
     @Column(unique = true)
     val username: String,

@@ -1,7 +1,10 @@
 package com.example.DaNangForum.dto.auth
 
+import com.example.DaNangForum.dto.user.UserDto
+
 data class AuthResponse(
-    val accessToken: String,
-    val refreshToken: String? = null  // Trả về Google ID Token nếu có
+    val accessToken: String? = null,
+    val refreshToken: String? = null,
+    val userDto: UserDto? = null
 )
 

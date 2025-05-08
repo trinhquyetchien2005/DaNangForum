@@ -1,6 +1,6 @@
 package com.example.DaNangForum.dto.post
 
-class PostUpdateRequest (
+data class PostUpdateRequest (
     val content: String,
     val image: String,
     val video: String

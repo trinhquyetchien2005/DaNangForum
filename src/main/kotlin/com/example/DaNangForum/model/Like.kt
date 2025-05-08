@@ -3,7 +3,7 @@ package com.example.danangforum.model
 import jakarta.persistence.*
 
 @Entity
-@Table(name = "like")
+@Table(name = "`like`")
 data class Like(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -11,9 +11,11 @@ data class Like(
 
     @ManyToOne(fetch = FetchType.LAZY)  // Quan hệ với post
     @JoinColumn(name = "post_id", nullable = false)
-    val post: Post,  // Bài viết mà người dùng thích
+    val post: Post?,  // Bài viết mà người dùng thích
 
     @ManyToOne(fetch = FetchType.LAZY)  // Quan hệ với user
     @JoinColumn(name = "user_id", nullable = false)
-    val user: User  // Người dùng đã thích bài viết
-)
+    val user: User?  // Người dùng đã thích bài viết
+){
+    constructor() : this(0, null, null) // 🛠 Constructor mặc định
+}

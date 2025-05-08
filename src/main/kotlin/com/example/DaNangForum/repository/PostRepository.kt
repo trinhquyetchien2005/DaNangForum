@@ -19,4 +19,6 @@ interface PostRepository: JpaRepository<Post, Long> {
     fun deletePostByPostId(postId: Long)
 
     fun findByGroup(group: Group): List<Post>
+
+    fun getPostByPostId(postId: Long): MutableList<Post>
 }

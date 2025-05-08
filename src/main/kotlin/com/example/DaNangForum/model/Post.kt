@@ -12,18 +12,18 @@ data class Post(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    val user: User,
+    var user: User,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_id")
     val group: Group? = null,
 
     @Column(columnDefinition = "TEXT", nullable = false)
-    val content: String = "",
+    var content: String = "",
 
-    val image: String? = null,
+    var image: String? = null,
 
-    val video: String? = null,
+    var video: String? = null,
 
     val createAt: LocalDateTime = LocalDateTime.now()
 ) {
