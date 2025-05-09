@@ -30,7 +30,10 @@ class JwtFilter(
         "^/swagger-ui.*",
         "^/api/post/all$",
         "^/api/post/\\d+/comments$",
-        "^/webjars.*"
+        "^/webjars.*",
+        "^/api/user/search/[^/]+$",
+        "^/api/user/\\d+$"
+
     )
 
     private fun isPublicPath(path: String): Boolean {

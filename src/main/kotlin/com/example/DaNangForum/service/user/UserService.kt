@@ -51,4 +51,11 @@ class UserService(
         if (listUser.isEmpty()) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null)
         return ResponseEntity.status(HttpStatus.OK).body(listUser)
     }
+
+    fun getUserById(id: Long): ResponseEntity<User> {
+        val user = userRepository.findById(id).orElse(null)
+        ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null)
+
+        return ResponseEntity.status(HttpStatus.OK).body(user)
+    }
 }
