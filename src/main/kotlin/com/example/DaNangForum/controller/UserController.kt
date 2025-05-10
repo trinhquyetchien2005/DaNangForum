@@ -36,4 +36,10 @@ class UserController(
     fun getUserById(@PathVariable("id") id: Long): ResponseEntity<User> {
         return userService.getUserById(id)
     }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping("/info")
+    fun getUser(): ResponseEntity<User> {
+        return userService.userInfo()
+    }
 }

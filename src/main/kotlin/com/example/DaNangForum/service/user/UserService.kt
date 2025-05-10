@@ -58,4 +58,12 @@ class UserService(
 
         return ResponseEntity.status(HttpStatus.OK).body(user)
     }
+
+    fun userInfo(): ResponseEntity<User> {
+        val auth = SecurityContextHolder.getContext().authentication
+        val emailfromtoken = auth.name
+        val user = userRepository.findByEmail(emailfromtoken)?: return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null)
+
+        return ResponseEntity.status(HttpStatus.OK).body(user)
+    }
 }
