@@ -7,7 +7,7 @@ import java.time.LocalDateTime
 
 @Entity
 @Table(name = "user")  // Đổi tên bảng thành "users" theo convention
-data class User(
+open class User(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val userId: Long = 0,

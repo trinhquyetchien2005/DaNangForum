@@ -13,8 +13,11 @@ java {
 		languageVersion = JavaLanguageVersion.of(21)
 	}
 }
-
-
+allOpen {
+	annotation("jakarta.persistence.Entity")
+	annotation("jakarta.persistence.MappedSuperclass")
+	annotation("jakarta.persistence.Embeddable")
+}
 
 repositories {
 	mavenCentral()

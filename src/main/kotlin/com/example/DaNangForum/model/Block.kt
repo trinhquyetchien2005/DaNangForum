@@ -5,7 +5,7 @@ import java.time.LocalDateTime
 
 @Entity
 @Table(name = "block")
-data class Block(
+open class Block(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,  // ID tự động tăng
@@ -18,4 +18,6 @@ data class Block(
     @JoinColumn(name = "blocked_id", nullable = false)
     val blocked: User,  // Người bị chặn
 
-)
+){
+    constructor() : this(0, User(), User())
+}

@@ -5,7 +5,7 @@ import java.time.LocalDateTime
 
 @Entity
 @Table(name = "post")
-data class Post(
+open class Post(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val postId: Long = 0,

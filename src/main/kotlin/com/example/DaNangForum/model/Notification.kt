@@ -4,7 +4,7 @@ import jakarta.persistence.*
 
 @Entity
 @Table(name = "notification")
-data class Notification(
+open class Notification(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val notificationId: Long = 0,  // ID tự động tăng cho bảng notification
@@ -19,4 +19,5 @@ data class Notification(
 
     @Column(name = "type", nullable = false)
     val type: String  // Loại thông báo (ví dụ: "like", "comment", "follow", etc.)
-)
+) {
+    constructor() : this(0, User(), "", "")}

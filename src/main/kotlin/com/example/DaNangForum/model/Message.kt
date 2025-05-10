@@ -1,10 +1,11 @@
 package com.example.danangforum.model
 
 import jakarta.persistence.*
+import java.time.LocalDateTime
 
 @Entity
 @Table(name = "message")
-data class Message(
+open class Message(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val messageId: Long = 0,  // ID tự động tăng cho bảng message
@@ -33,4 +34,6 @@ data class Message(
 
     @Column(name = "create_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     val createAt: java.time.LocalDateTime = java.time.LocalDateTime.now()  // Thời gian tạo tin nhắn
-)
+) {
+    constructor() : this(0, User(), null, null, null, null, null, LocalDateTime.now())
+}

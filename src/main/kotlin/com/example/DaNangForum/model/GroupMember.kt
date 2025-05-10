@@ -4,7 +4,7 @@ import jakarta.persistence.*
 
 @Entity
 @Table(name = "groupmember")
-data class GroupMember(
+open class GroupMember(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,  // ID tự động tăng cho bảng groupmember
@@ -16,4 +16,6 @@ data class GroupMember(
     @ManyToOne(fetch = FetchType.LAZY)  // Quan hệ với user
     @JoinColumn(name = "member_id", nullable = false)
     val member: User  // Thành viên của nhóm
-)
+){
+    constructor() : this(0, Group(), User())
+}

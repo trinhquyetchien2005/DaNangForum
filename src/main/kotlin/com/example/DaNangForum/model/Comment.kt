@@ -5,7 +5,7 @@ import java.time.LocalDateTime
 
 @Entity
 @Table(name = "comment")
-data class Comment(
+open class Comment(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val commentId: Long = 0,  // ID tự động tăng cho comment

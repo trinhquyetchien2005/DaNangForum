@@ -5,7 +5,7 @@ import java.time.LocalDateTime
 
 @Entity
 @Table(name = "groupchat")
-data class GroupChat(
+open class GroupChat(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val groupchat_id: Long = 0,  // ID tự động tăng cho bảng groupchat
@@ -22,4 +22,6 @@ data class GroupChat(
 
     @Column(name = "create_at", nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     val create_at: LocalDateTime = LocalDateTime.now()  // Thời gian tạo group chat
-)
+){
+    constructor() : this(0, User(), "", null, LocalDateTime.now())
+}

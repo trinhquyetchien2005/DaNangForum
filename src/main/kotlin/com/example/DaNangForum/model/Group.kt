@@ -5,7 +5,7 @@ import java.time.LocalDateTime
 
 @Entity
 @Table(name = "`group`") // dùng ` để tránh lỗi vì "group" là từ khóa SQL
-data class Group(
+open class Group(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val groupId: Long = 0,

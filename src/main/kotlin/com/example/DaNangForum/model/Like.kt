@@ -4,7 +4,7 @@ import jakarta.persistence.*
 
 @Entity
 @Table(name = "`like`")
-data class Like(
+open class Like(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val likeId: Long = 0,  // ID tự động tăng cho bảng like

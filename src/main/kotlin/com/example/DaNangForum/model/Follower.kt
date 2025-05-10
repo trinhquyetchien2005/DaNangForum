@@ -4,7 +4,7 @@ import jakarta.persistence.*
 
 @Entity
 @Table(name = "follower")
-data class Follower(
+open class Follower(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,  // ID tự động tăng cho bảng follower
@@ -16,4 +16,6 @@ data class Follower(
     @ManyToOne(fetch = FetchType.LAZY)  // Quan hệ với người được theo dõi (following)
     @JoinColumn(name = "following_id", nullable = false)
     val following: User  // Người được theo dõi
-)
+) {
+    constructor() : this(0, User(), User())
+}
