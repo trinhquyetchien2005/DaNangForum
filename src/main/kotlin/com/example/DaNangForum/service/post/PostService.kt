@@ -196,6 +196,7 @@ class PostService(
             val user = post.user
                 val userdto = UserDto(user.userId, user.username, user.email, user.avatar)
                 val postdto = PostGetRequest(
+                    post_id = post.postId,
                     userdto = userdto,
                     content = post.content,
                     image = post.image,

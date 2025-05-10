@@ -4,6 +4,7 @@ import com.example.DaNangForum.dto.user.UserDto
 import java.time.LocalDateTime
 
 data class PostGetRequest(
+    val post_id :Long,
     val userdto: UserDto,
     val content: String,
     val image: String ?= null,
