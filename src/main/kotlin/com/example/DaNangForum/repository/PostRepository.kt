@@ -12,7 +12,7 @@ interface PostRepository: JpaRepository<Post, Long> {
     override fun findAll(): List<Post>
 
     // Thay đổi tên phương thức để khớp với thuộc tính trong entity
-    fun findByPostId(postId: Long): Post?  // Chú ý tên phương thức phải là findBy<property_name>
+    fun findByPostId(postId: Long): Post?
 
     fun findByUser(user: User): List<Post>
 
