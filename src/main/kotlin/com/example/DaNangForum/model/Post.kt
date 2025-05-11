@@ -10,11 +10,11 @@ open class Post(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val postId: Long = 0,
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", nullable = false)
     var user: User,
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "group_id")
     val group: Group? = null,
 

@@ -10,15 +10,15 @@ open class Message(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val messageId: Long = 0,  // ID tự động tăng cho bảng message
 
-    @ManyToOne(fetch = FetchType.LAZY)  // Quan hệ với user (người gửi)
+    @ManyToOne(fetch = FetchType.EAGER)  // Quan hệ với user (người gửi)
     @JoinColumn(name = "sender_id", nullable = false)
     val sender: User,  // Người gửi
 
-    @ManyToOne(fetch = FetchType.LAZY)  // Quan hệ với user (người nhận)
+    @ManyToOne(fetch = FetchType.EAGER)  // Quan hệ với user (người nhận)
     @JoinColumn(name = "receiver_id")
     val receiver: User?,  // Người nhận, có thể là null (trong trường hợp là message trong nhóm chat)
 
-    @ManyToOne(fetch = FetchType.LAZY)  // Quan hệ với groupchat (nếu có)
+    @ManyToOne(fetch = FetchType.EAGER)  // Quan hệ với groupchat (nếu có)
     @JoinColumn(name = "groupchat_id")
     val groupchat: GroupChat?,  // Nhóm chat, có thể null nếu không phải là tin nhắn nhóm
 

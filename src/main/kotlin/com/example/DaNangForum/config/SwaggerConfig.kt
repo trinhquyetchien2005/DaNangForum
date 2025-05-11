@@ -12,10 +12,10 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-class OpenAPIConfig {
+open class OpenAPIConfig {
 
     @Bean
-    fun customOpenAPI(
+    open fun customOpenAPI(
         @Value("\${openapi.service.title}") title: String,
         @Value("\${openapi.service.version}") version: String,
         @Value("\${openapi.service.server}") serverUrl: String
@@ -43,7 +43,7 @@ class OpenAPIConfig {
             )
     }
     @Bean
-    fun defaultApi(): GroupedOpenApi {
+    open fun defaultApi(): GroupedOpenApi {
         return GroupedOpenApi.builder()
             .group("danang-forum")
             .pathsToMatch("/**")

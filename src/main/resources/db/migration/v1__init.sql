@@ -73,6 +73,7 @@ CREATE TABLE groupmember (
                              id BIGINT AUTO_INCREMENT PRIMARY KEY,
                              group_id BIGINT NOT NULL,
                              member_id BIGINT NOT NULL,
+                             status VARCHAR(20) DEFAULT 'PENDING',  -- Thêm cột trạng thái
                              FOREIGN KEY (group_id) REFERENCES `group`(group_id),
                              FOREIGN KEY (member_id) REFERENCES user(user_id)
 );

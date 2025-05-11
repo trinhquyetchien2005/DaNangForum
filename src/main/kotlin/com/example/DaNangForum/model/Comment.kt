@@ -10,11 +10,11 @@ open class Comment(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val commentId: Long = 0,  // ID tự động tăng cho comment
 
-    @ManyToOne(fetch = FetchType.LAZY)  // Quan hệ với bài viết (post)
+    @ManyToOne(fetch = FetchType.EAGER)  // Quan hệ với bài viết (post)
     @JoinColumn(name = "post_id", nullable = false)
     val post: Post?,  // Bài viết mà comment thuộc về
 
-    @ManyToOne(fetch = FetchType.LAZY)  // Quan hệ với người dùng (user)
+    @ManyToOne(fetch = FetchType.EAGER)  // Quan hệ với người dùng (user)
     @JoinColumn(name = "user_id", nullable = false)
     val user: User?,  // Người viết comment
 

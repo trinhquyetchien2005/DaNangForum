@@ -11,9 +11,9 @@ open class Group(
     val groupId: Long = 0,
 
     @Column(nullable = false)
-    val groupname: String = "",  // Đảm bảo groupname không phải null
+    var groupname: String = "",  // Đảm bảo groupname không phải null
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "owner_id", nullable = false)
     val owner: User,  // Hibernate sẽ gán owner sau
 

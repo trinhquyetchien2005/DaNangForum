@@ -9,7 +9,7 @@ open class Notification(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val notificationId: Long = 0,  // ID tự động tăng cho bảng notification
 
-    @ManyToOne(fetch = FetchType.LAZY)  // Quan hệ với user (người nhận thông báo)
+    @ManyToOne(fetch = FetchType.EAGER)  // Quan hệ với user (người nhận thông báo)
     @JoinColumn(name = "user_id", nullable = false)
     val user: User,  // Người nhận thông báo
 
