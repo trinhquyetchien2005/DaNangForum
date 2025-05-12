@@ -8,6 +8,7 @@ import com.example.DaNangForum.repository.GroupMemberRepository
 import com.example.danangforum.model.Group
 import com.example.danangforum.model.GroupMember
 import com.example.danangforum.model.MemberStatus
+import com.example.danangforum.model.User
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.context.SecurityContextHolder
@@ -177,5 +178,53 @@ class GroupService (
         return ResponseEntity.ok(ApiResponse("Đã gửi yêu cầu tham gia nhóm", null))
     }
 
+    fun getMyGroupMembers(groupId: Long): ResponseEntity<List<User>> {
+        val auth = SecurityContextHolder.getContext().authentication
+        val email = auth.name
+        val user = userRepository.findByEmail(email) ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+
+        val group = groupRepository.findById(groupId).orElse(null) ?: return ResponseEntity.notFound().build()
+
+        if (group.owner != user) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        }
+
+        val groupMembers = groupMemberRepository.findGroupMembersByGroup(group) ?: return ResponseEntity.noContent().build()
+
+        val usersInGroup = groupMembers.map { it.member }
+
+        return ResponseEntity.status(200).body(usersInGroup)
+    }
+
+
+    fun getmyGroup(): ResponseEntity<List<Group>> {
+        val auth = SecurityContextHolder.getContext().authentication
+        val email = auth.name
+        val user = userRepository.findByEmail(email) ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+
+        val myGroups = groupRepository.findGroupsByOwner(user)
+
+        if(myGroups.isEmpty()){
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build()
+        }
+        return ResponseEntity.status(200).body(myGroups)
+    }
+
+    fun getmyGroupJoin(): ResponseEntity<List<Group>> {
+        val auth = SecurityContextHolder.getContext().authentication
+        val email = auth.name
+        val user = userRepository.findByEmail(email) ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+
+        val groupMembers = groupMemberRepository.findGroupMembersByMember(user)
+        if (groupMembers.isEmpty()) {
+            return ResponseEntity.noContent().build()
+        }
+
+        val joinedGroups = groupMembers
+            .map { it.group }
+            .filter { it.owner != user } // loại group do mình làm chủ
+
+        return ResponseEntity.status(200).body(joinedGroups)
+    }
 
 }

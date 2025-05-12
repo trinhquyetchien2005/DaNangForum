@@ -3,12 +3,15 @@ package com.example.DaNangForum.controller
 import com.example.DaNangForum.dto.ApiResponse
 import com.example.DaNangForum.dto.Group.GroupDto
 import com.example.DaNangForum.service.Group.GroupService
+import com.example.danangforum.model.Group
+import com.example.danangforum.model.GroupMember
+import com.example.danangforum.model.User
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/group")
+@RequestMapping("/api/group")
 class GroupController(
     private val groupService: GroupService
 ) {
@@ -62,5 +65,23 @@ class GroupController(
     @PutMapping("/changeName/{groupId}")
     fun changeName(groupId: Long, @RequestBody name: String): ResponseEntity<ApiResponse> {
         return groupService.changeName(groupId, name)
+    }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping("/myGroup")
+    fun getGroups(): ResponseEntity<List<Group>> {
+        return groupService.getmyGroup()
+    }
+
+    @SecurityRequirement(name = "bearerAuth")
+   @GetMapping("/myGroupMember/{groupId}")
+    fun getGroupMembers(@PathVariable groupId: Long): ResponseEntity<List<User>> {
+        return groupService.getMyGroupMembers(groupId)
+    }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping("/myGroupJoin")
+    fun getGroupJoin(): ResponseEntity<List<Group>> {
+        return groupService.getmyGroupJoin()
     }
 }

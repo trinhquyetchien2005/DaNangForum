@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/block")
+@RequestMapping("/api/block")
 class BlockController (
     val blockService: BlockService
 ){
