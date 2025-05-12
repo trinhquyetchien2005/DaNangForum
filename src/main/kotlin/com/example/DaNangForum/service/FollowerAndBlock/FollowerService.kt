@@ -7,6 +7,7 @@ import com.example.DaNangForum.repository.UserRepository
 import com.example.danangforum.model.Block
 import com.example.danangforum.model.Follower
 import com.example.danangforum.model.User
+import jakarta.transaction.Transactional
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
@@ -69,6 +70,11 @@ class FollowerService(
             return ResponseEntity.status(400).body(ApiResponse("ban dang block nguoi nay", followUser))
         }
 
+        val exitdFollowUser = followerRepository.isFollowing(user, followUser)
+        if (exitdFollowUser){
+            return ResponseEntity.status(400).body(ApiResponse("ban da follow nguoi nay", followUser))
+        }
+
         val follow = Follower(
             follower = user,
             following = followUser
@@ -96,12 +102,20 @@ class FollowerService(
     fun unFollow(userId: Long): ResponseEntity<ApiResponse> {
         val auth = SecurityContextHolder.getContext().authentication
         val email = auth.name
-        val user = userRepository.findByEmail(email)?: return ResponseEntity.status(404).body(null)
+        val user = userRepository.findByEmail(email)
+            ?: return ResponseEntity.status(404).body(ApiResponse("Authenticated user not found", false))
 
-        val followingUser = userRepository.findById(userId).orElse(null)?:return ResponseEntity.status(404).body(null)
+        val followingUser = userRepository.findById(userId).orElse(null)
+            ?: return ResponseEntity.status(404).body(ApiResponse("User to unfollow not found", false))
 
-        val unfollow = followerRepository.deleteByFollowerAndFollowing(user, followingUser)
+        val deletedCount = followerRepository.deleteByFollowerAndFollowing(user, followingUser)
+        val success = deletedCount > 0
 
-        return ResponseEntity.ok().body(ApiResponse("Unfollowing", unfollow))
+        return if (success) {
+            ResponseEntity.ok(ApiResponse("Unfollowed successfully", true))
+        } else {
+            ResponseEntity.status(400).body(ApiResponse("You were not following this user", false))
+        }
     }
+
 }

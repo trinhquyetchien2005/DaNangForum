@@ -1,9 +1,10 @@
 package com.example.DaNangForum.repository
 
-import com.example.DaNangForum.dto.ApiResponse
 import com.example.danangforum.model.Follower
 import com.example.danangforum.model.User
 import io.lettuce.core.dynamic.annotation.Param
+import io.swagger.v3.oas.models.responses.ApiResponse
+import jakarta.transaction.Transactional
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.http.ResponseEntity
@@ -62,5 +63,8 @@ interface FollowerRepository : JpaRepository<Follower, Long> {
 """)
     fun findUsersNotFollowedAndNotBlocked(@Param("user") user: User): List<User>
 
-    fun deleteByFollowerAndFollowing(user: User, follower: User): ResponseEntity<ApiResponse>
+    @Transactional
+    fun deleteByFollowerAndFollowing(follower: User, following: User): Int
+
+
 }
