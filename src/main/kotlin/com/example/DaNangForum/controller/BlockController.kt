@@ -3,7 +3,7 @@ package com.example.DaNangForum.controller
 import com.example.DaNangForum.dto.ApiResponse
 import com.example.DaNangForum.repository.BlockRepository
 import com.example.DaNangForum.service.FollowerAndBlock.BlockService
-import com.example.danangforum.model.User
+import com.example. danangforum.model.User
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping

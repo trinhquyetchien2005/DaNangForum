@@ -5,6 +5,7 @@ import com.example.DaNangForum.service.FollowerAndBlock.FollowerService
 import com.example.danangforum.model.User
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -37,5 +38,17 @@ class FollowerController(val followerService: FollowerService) {
     @PostMapping("/Follow")
     fun Follow(@RequestBody userId: Long): ResponseEntity<ApiResponse> {
         return followerService.Follow(userId)
+    }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping("/GetPeople")
+    fun getPeople(): ResponseEntity<List<User>> {
+        return followerService.getPeople()
+    }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @DeleteMapping("/unfollow")
+    fun unfollow(@RequestBody userId: Long): ResponseEntity<ApiResponse> {
+        return followerService.unFollow(userId)
     }
 }

@@ -79,4 +79,29 @@ class FollowerService(
         return ResponseEntity.ok().body(ApiResponse("Following", follow))
     }
 
+    fun getPeople(): ResponseEntity<List<User>> {
+        val auth = SecurityContextHolder.getContext().authentication
+        val email = auth.name
+        val user = userRepository.findByEmail(email)
+
+        if (user == null){
+            return ResponseEntity.status(404).body(null)
+        }
+
+        val listUser = followerRepository.findUsersNotFollowedAndNotBlocked(user)
+
+        return ResponseEntity.ok().body(listUser)
+    }
+
+    fun unFollow(userId: Long): ResponseEntity<ApiResponse> {
+        val auth = SecurityContextHolder.getContext().authentication
+        val email = auth.name
+        val user = userRepository.findByEmail(email)?: return ResponseEntity.status(404).body(null)
+
+        val followingUser = userRepository.findById(userId).orElse(null)?:return ResponseEntity.status(404).body(null)
+
+        val unfollow = followerRepository.deleteByFollowerAndFollowing(user, followingUser)
+
+        return ResponseEntity.ok().body(ApiResponse("Unfollowing", unfollow))
+    }
 }

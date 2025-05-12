@@ -1,10 +1,12 @@
 package com.example.DaNangForum.repository
 
+import com.example.DaNangForum.dto.ApiResponse
 import com.example.danangforum.model.Follower
 import com.example.danangforum.model.User
 import io.lettuce.core.dynamic.annotation.Param
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
+import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Repository
 
 @Repository
@@ -45,5 +47,20 @@ interface FollowerRepository : JpaRepository<Follower, Long> {
         @Param("following") following: User
     ): Boolean
 
+    @Query("""
+    SELECT u FROM User u
+    WHERE u != :user
+    AND u NOT IN (
+        SELECT f.following FROM Follower f WHERE f.follower = :user
+    )
+    AND u NOT IN (
+        SELECT b.blocked FROM Block b WHERE b.blocker = :user
+    )
+    AND u NOT IN (
+        SELECT b.blocker FROM Block b WHERE b.blocked = :user
+    )
+""")
+    fun findUsersNotFollowedAndNotBlocked(@Param("user") user: User): List<User>
 
+    fun deleteByFollowerAndFollowing(user: User, follower: User): ResponseEntity<ApiResponse>
 }
