@@ -49,8 +49,12 @@ class SecurityConfig(
                     "/api/post/all",
                     "/api/post/{postId}/comments",
                     "/api/user/search/{name}",
+                    "http://127.0.0.1:5500",
                     "/api/user/{id}",
-                    "/webjars/**"
+                    "/webjars/**",
+                    "/ws-chat/**",
+                    "/ws/**"
+
                 ).permitAll()
                 it.anyRequest().authenticated()
             }

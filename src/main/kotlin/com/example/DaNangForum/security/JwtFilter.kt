@@ -15,7 +15,6 @@ class JwtFilter(
     private val userDetailsService: CustomUserDetailsService
 ) : OncePerRequestFilter() {
 
-    // Những đường dẫn public giống hệt SecurityConfig
     private val publicPathPatterns = listOf(
         "^/api/auth/register$",
         "^/api/auth/login$",
@@ -28,13 +27,12 @@ class JwtFilter(
         "^/v3/api-docs.*",
         "^/swagger-ui.html$",
         "^/swagger-ui.*",
-//        "^/api/post/all$",
         "^/api/post/\\d+/comments$",
-        "^/webjars.*",
         "^/api/user/search/[^/]+$",
-        "^/api/user/\\d+$"
-
+        "^/api/user/\\d+$",
+        "^/ws/.*$", // ✅ Cho phép tất cả endpoint WebSocket như /ws/chat
     )
+
 
     private fun isPublicPath(path: String): Boolean {
         return publicPathPatterns.any { path.matches(Regex(it)) }

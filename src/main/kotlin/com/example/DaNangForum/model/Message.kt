@@ -16,11 +16,7 @@ open class Message(
 
     @ManyToOne(fetch = FetchType.EAGER)  // Quan hệ với user (người nhận)
     @JoinColumn(name = "receiver_id")
-    val receiver: User?,  // Người nhận, có thể là null (trong trường hợp là message trong nhóm chat)
-
-    @ManyToOne(fetch = FetchType.EAGER)  // Quan hệ với groupchat (nếu có)
-    @JoinColumn(name = "groupchat_id")
-    val groupchat: GroupChat?,  // Nhóm chat, có thể null nếu không phải là tin nhắn nhóm
+    val receiver: User?,  // Người nhận, có thể là null
 
     @Lob  // Lưu trữ nội dung tin nhắn dưới dạng văn bản dài
     @Column(name = "content", columnDefinition = "TEXT")
@@ -35,5 +31,5 @@ open class Message(
     @Column(name = "create_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     val createAt: java.time.LocalDateTime = java.time.LocalDateTime.now()  // Thời gian tạo tin nhắn
 ) {
-    constructor() : this(0, User(), null, null, null, null, null, LocalDateTime.now())
+    constructor() : this(0, User(), null, null, null, null, LocalDateTime.now())
 }

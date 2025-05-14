@@ -23,16 +23,12 @@ import org.springframework.web.bind.annotation.*
 class PostController(
     private val postService: PostService,
     private val userRepository: UserRepository,
-    repository: UserRepository,
     val jwtUtils: JwtUtils,
     private val postRepository: PostRepository,
-    private val authService: AuthService,
 ){
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/all")
     fun getAllPostsForHome(): ResponseEntity<List<PostWithStatsResponse>> {
-
-
         return postService.getAllPostsWithStats()
     }
 
