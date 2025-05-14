@@ -28,8 +28,11 @@ class PostController(
     private val postRepository: PostRepository,
     private val authService: AuthService,
 ){
+    @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/all")
     fun getAllPostsForHome(): ResponseEntity<List<PostWithStatsResponse>> {
+
+
         return postService.getAllPostsWithStats()
     }
 

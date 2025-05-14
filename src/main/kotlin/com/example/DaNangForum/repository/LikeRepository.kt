@@ -8,5 +8,6 @@ import org.springframework.stereotype.Repository
 interface LikeRepository: JpaRepository<Like, Long> {
     fun findByPost_PostIdAndUser_UserId(postId: Long, userId: Long): Like?
     fun countByPost_PostId(postId: Long): Int
+    fun existsByPost_PostIdAndUser_UserId(postPostId: Long, userUserId: Long): Boolean
 
 }

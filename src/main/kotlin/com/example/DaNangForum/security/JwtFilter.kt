@@ -28,7 +28,7 @@ class JwtFilter(
         "^/v3/api-docs.*",
         "^/swagger-ui.html$",
         "^/swagger-ui.*",
-        "^/api/post/all$",
+//        "^/api/post/all$",
         "^/api/post/\\d+/comments$",
         "^/webjars.*",
         "^/api/user/search/[^/]+$",

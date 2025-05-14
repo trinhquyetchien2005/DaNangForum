@@ -15,10 +15,12 @@ import com.example.danangforum.model.Comment
 import com.example.danangforum.model.Like
 import com.example.danangforum.model.Post
 import com.example.danangforum.model.User
+import org.hibernate.validator.internal.util.logging.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
+import java.util.logging.Logger
 
 @Service
 class PostService(
@@ -186,24 +188,29 @@ class PostService(
     }
 
     fun getAllPostsWithStats(): ResponseEntity<List<PostWithStatsResponse>> {
-
+        val auth = SecurityContextHolder.getContext().authentication
+        val emailfromtoken = auth.name
+        val logger: org.slf4j.Logger = org.slf4j.LoggerFactory.getLogger(PostService::class.java)
+        logger.info(""+emailfromtoken)
+        val userFromAccessToken = userRepository.findByEmail(emailfromtoken)?: return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null)
         val posts = postRepository.findAll()
 
         val postStats = posts.map { post ->
             val likeCount = likeRepository.countByPost_PostId(post.postId)
             val commentCount = commentRepository.countByPost_PostId(post.postId)
-
+            val isLiked = likeRepository.existsByPost_PostIdAndUser_UserId(post.postId, userFromAccessToken.userId)
             val user = post.user
-                val userdto = UserDto(user.userId, user.username, user.email, user.avatar)
-                val postdto = PostGetRequest(
+            val userdto = UserDto(user.userId, user.username, user.email, user.avatar)
+            val postdto = PostGetRequest(
                     post_id = post.postId,
                     userdto = userdto,
                     content = post.content,
                     image = post.image,
                     video = post.video,
                     create_at = post.createAt
-                )
-                PostWithStatsResponse(postdto, likeCount, commentCount)
+            )
+
+            PostWithStatsResponse(postdto, likeCount, commentCount, isLiked)
 
         }
 
