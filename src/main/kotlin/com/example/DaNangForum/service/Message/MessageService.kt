@@ -6,6 +6,10 @@ import com.example.DaNangForum.repository.UserRepository
 import com.example.danangforum.model.Message
 import com.example.danangforum.model.User
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
 import org.springframework.stereotype.Service
 
 @Service
@@ -13,6 +17,25 @@ class MessageService @Autowired constructor(
     private val messageRepository: MessageRepository,
     private val userRepository: UserRepository  // Để lấy thông tin người dùng
 ) {
+
+    fun getMessages(receiverId: Long): ResponseEntity<List<Message>> {
+        val receiver = userRepository.findById(receiverId).orElse(null) ?: return ResponseEntity.notFound().build()
+
+        val auth = SecurityContextHolder.getContext().authentication
+        val emailfromtoken = auth.name
+        val userFromEmail = userRepository.findByEmail(emailfromtoken)
+
+        if ( userFromEmail == null ) {
+            return ResponseEntity.status(400).body(null)
+        }
+
+        val listMessages = messageRepository.findMessagesBySenderAndReceiverOrderByCreateAtDesc(userFromEmail, receiver)
+        if ( listMessages.isEmpty() ) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build()
+        }
+
+        return ResponseEntity.status(200).body(listMessages)
+    }
 
     fun saveMessage(messageDTO: MessageDTO): Message {
         // Lấy người gửi từ DB theo senderId

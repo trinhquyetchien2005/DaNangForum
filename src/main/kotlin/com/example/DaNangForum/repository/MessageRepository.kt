@@ -8,4 +8,6 @@ import org.springframework.stereotype.Repository
 @Repository
 interface MessageRepository : JpaRepository<Message, Long> {
     fun findTop100ByReceiverOrderByCreateAtDesc(receiver: User): List<Message>
+
+    fun findMessagesBySenderAndReceiverOrderByCreateAtDesc(sender: User, receiver: User): List<Message>
 }

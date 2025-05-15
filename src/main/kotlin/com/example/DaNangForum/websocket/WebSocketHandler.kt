@@ -27,21 +27,21 @@ class ChatWebSocketHandler(
             session.attributes["userId"] = userId
             println("✅ User $userId connected to WebSocket.")
 
-            // 👉 Truy vấn và log tin nhắn cũ
-            val receiver = userRepository.findById(userId)
-            if (receiver.isPresent) {
-                val messages = messageRepository.findTop100ByReceiverOrderByCreateAtDesc(receiver.get())
-                if (messages.isNotEmpty()) {
-                    println("📨 Tin nhắn đến user $userId:")
-                    messages.forEach { msg ->
-                        println("  • Từ ${msg.sender.username}: ${msg.content} (${msg.createAt})")
-                    }
-                } else {
-                    println("ℹ️ Không có tin nhắn nào đến user $userId.")
-                }
-            } else {
-                println("❌ Không tìm thấy user trong DB để lấy tin nhắn.")
-            }
+//            // 👉 Truy vấn và log tin nhắn cũ
+//            val receiver = userRepository.findById(userId)
+//            if (receiver.isPresent) {
+//                val messages = messageRepository.findTop100ByReceiverOrderByCreateAtDesc(receiver.get())
+//                if (messages.isNotEmpty()) {
+//                    println("📨 Tin nhắn đến user $userId:")
+//                    messages.forEach { msg ->
+//                        println("  • Từ ${msg.sender.username}: ${msg.content} (${msg.createAt})")
+//                    }
+//                } else {
+//                    println("ℹ️ Không có tin nhắn nào đến user $userId.")
+//                }
+//            } else {
+//                println("❌ Không tìm thấy user trong DB để lấy tin nhắn.")
+//            }
 
         } else {
             println("❌ Missing or invalid userId in WebSocket connection URL.")
