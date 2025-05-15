@@ -17,25 +17,24 @@ class MessageService @Autowired constructor(
     private val messageRepository: MessageRepository,
     private val userRepository: UserRepository  // Để lấy thông tin người dùng
 ) {
-
     fun getMessages(receiverId: Long): ResponseEntity<List<Message>> {
-        val receiver = userRepository.findById(receiverId).orElse(null) ?: return ResponseEntity.notFound().build()
+        val receiver = userRepository.findById(receiverId).orElse(null)
+            ?: return ResponseEntity.notFound().build()
 
         val auth = SecurityContextHolder.getContext().authentication
-        val emailfromtoken = auth.name
-        val userFromEmail = userRepository.findByEmail(emailfromtoken)
+        val emailFromToken = auth.name
+        val userFromEmail = userRepository.findByEmail(emailFromToken)
+            ?: return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null)
 
-        if ( userFromEmail == null ) {
-            return ResponseEntity.status(400).body(null)
-        }
+        val conversation = messageRepository.findConversationBetweenUsers(userFromEmail, receiver)
 
-        val listMessages = messageRepository.findMessagesBySenderAndReceiverOrderByCreateAtDesc(userFromEmail, receiver)
-        if ( listMessages.isEmpty() ) {
+        if (conversation.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build()
         }
 
-        return ResponseEntity.status(200).body(listMessages)
+        return ResponseEntity.ok(conversation)
     }
+
 
     fun saveMessage(messageDTO: MessageDTO): Message {
         // Lấy người gửi từ DB theo senderId
@@ -60,9 +59,4 @@ class MessageService @Autowired constructor(
         return messageRepository.save(message)
     }
 
-    // Lấy 100 tin nhắn gần nhất của người nhận
-    fun getRecentMessages(receiverId: Long): List<Message> {
-        val userChat = userRepository.findById(receiverId).orElseThrow { RuntimeException("User not found with id: $receiverId") }
-        return messageRepository.findTop100ByReceiverOrderByCreateAtDesc(userChat)
-    }
 }

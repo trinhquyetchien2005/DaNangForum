@@ -23,11 +23,4 @@ class WebSocketChatController @Autowired constructor(
         return messageDTO
     }
 
-    // Một phương thức khác để lấy lịch sử tin nhắn
-    @MessageMapping("/chat.history")
-    @SendToUser("/queue/messages")
-    fun getHistory(userId: Long): List<Message> {
-        // Lấy tất cả tin nhắn của người dùng từ cơ sở dữ liệu
-        return messageService.getRecentMessages(userId)
-    }
 }
