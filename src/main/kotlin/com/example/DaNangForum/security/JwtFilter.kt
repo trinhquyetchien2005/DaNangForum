@@ -30,7 +30,8 @@ class JwtFilter(
         "^/api/post/\\d+/comments$",
         "^/api/user/search/[^/]+$",
         "^/api/user/\\d+$",
-        "^/ws/.*$", // ✅ Cho phép tất cả endpoint WebSocket như /ws/chat
+        "^/ws/.*$",
+        "^/api/message(/.*)?$"// ✅ Cho phép tất cả endpoint WebSocket như /ws/chat
     )
 
 

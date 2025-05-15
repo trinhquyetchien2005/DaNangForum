@@ -53,7 +53,8 @@ class SecurityConfig(
                     "/api/user/{id}",
                     "/webjars/**",
                     "/ws-chat/**",
-                    "/ws/**"
+                    "/ws/**",
+                    "/api/message/**"
 
                 ).permitAll()
                 it.anyRequest().authenticated()

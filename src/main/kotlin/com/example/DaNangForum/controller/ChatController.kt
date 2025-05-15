@@ -22,5 +22,4 @@ class WebSocketChatController @Autowired constructor(
         // Trả về tin nhắn đã gửi cho client
         return messageDTO
     }
-
 }
