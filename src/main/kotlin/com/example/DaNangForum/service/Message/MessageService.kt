@@ -23,8 +23,7 @@ class MessageService @Autowired constructor(
 
         val auth = SecurityContextHolder.getContext().authentication
         val emailFromToken = auth.name
-        val userFromEmail = userRepository.findByEmail(emailFromToken)
-            ?: return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null)
+        val userFromEmail = userRepository.findByEmail(emailFromToken)?: return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null)
 
         val conversation = messageRepository.findConversationBetweenUsers(userFromEmail, receiver)
 

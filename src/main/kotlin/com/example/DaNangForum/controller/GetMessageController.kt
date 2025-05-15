@@ -16,7 +16,7 @@ class GetMessageController(
     private val messageService: MessageService,
 ) {
     @SecurityRequirement(name = "bearerAuth")
-    @GetMapping("/history")
+    @GetMapping("/{receiverId}")
     fun getMessage( @PathVariable receiverId: Long): ResponseEntity<List<Message>> {
         return messageService.getMessages(receiverId)
     }
