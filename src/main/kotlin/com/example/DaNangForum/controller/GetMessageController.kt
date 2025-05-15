@@ -17,7 +17,7 @@ class GetMessageController(
 ) {
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/{receiverId}")
-    fun getMessage( @RequestParam receiverId: Long): ResponseEntity<List<Message>> {
+    fun getMessage( @PathVariable receiverId: Long): ResponseEntity<List<Message>> {
         return messageService.getMessages(receiverId)
     }
 }
