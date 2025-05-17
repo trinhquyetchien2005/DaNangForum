@@ -18,7 +18,6 @@ class WebSocketChatController @Autowired constructor(
     fun sendMessage(messageDTO: MessageDTO): MessageDTO {
         // Lưu tin nhắn vào cơ sở dữ liệu
         messageService.saveMessage(messageDTO)
-
         // Trả về tin nhắn đã gửi cho client
         return messageDTO
     }

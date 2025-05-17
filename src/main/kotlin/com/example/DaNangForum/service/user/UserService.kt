@@ -1,6 +1,7 @@
 package com.example.DaNangForum.service.user
 
 import com.example.DaNangForum.dto.ApiResponse
+import com.example.DaNangForum.dto.user.UserStatsDto
 import com.example.DaNangForum.dto.user.UserUpdateRequest
 import com.example.DaNangForum.repository.UserRepository
 import com.example.DaNangForum.service.auth.RedisService
@@ -65,5 +66,14 @@ class UserService(
         val user = userRepository.findByEmail(emailfromtoken)?: return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null)
 
         return ResponseEntity.status(HttpStatus.OK).body(user)
+    }
+
+    fun getStats(userId: Long): UserStatsDto {
+        val info = userRepository.fetchUserStats(userId)
+        return UserStatsDto(
+            followers = info.followers,
+            following = info.following,
+            likes     = info.likes
+        )
     }
 }

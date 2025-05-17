@@ -25,9 +25,9 @@ class JwtUtils(
             .compact()
     }
 
-    fun generateRefreshToken(username: String): String {
+    fun generateRefreshToken(email: String): String {
         return Jwts.builder()
-            .setSubject(username)
+            .setSubject(email)
             .setIssuedAt(Date())
             .setExpiration(Date(System.currentTimeMillis() + refreshExpirationMs))
             .signWith(key, SignatureAlgorithm.HS256)

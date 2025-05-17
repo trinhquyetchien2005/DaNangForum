@@ -1,11 +1,14 @@
 package com.example.DaNangForum.controller
 
 import com.example.DaNangForum.dto.ApiResponse
+import com.example.DaNangForum.dto.user.UserStatsDto
 import com.example.DaNangForum.dto.user.UserUpdateRequest
 import com.example.DaNangForum.repository.UserRepository
 import com.example.DaNangForum.service.user.UserService
 import com.example.danangforum.model.User
+import io.lettuce.core.KillArgs.Builder.user
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -42,4 +45,16 @@ class UserController(
     fun getUser(): ResponseEntity<User> {
         return userService.userInfo()
     }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping("/{userId}/stats")
+    fun getUserStats(@PathVariable userId: Long): ResponseEntity<UserStatsDto> {
+        val user = userRepository.findById(userId).orElse(null)
+        if (user == null) {
+            return ResponseEntity.notFound().build()
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(userService.getStats(userId))
+    }
+
 }
