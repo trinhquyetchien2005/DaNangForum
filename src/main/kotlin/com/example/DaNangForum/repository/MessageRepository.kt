@@ -22,6 +22,17 @@ interface MessageRepository : JpaRepository<Message, Long> {
         @Param("user2") user2: User
     ): List<Message>
 
+    @Query("""
+    SELECT m FROM Message m 
+    WHERE 
+        (m.sender = :user1 AND m.receiver = :user2) OR 
+        (m.sender = :user2 AND m.receiver = :user1)
+    ORDER BY m.createAt DESC
+""")
+    fun findLastMessageBetweenUsers(
+        @Param("user1") user1: User,
+        @Param("user2") user2: User
+    ): List<Message>
 
     fun findMessagesBySenderAndReceiverOrderByCreateAtDesc(sender: User, receiver: User): List<Message>
 }

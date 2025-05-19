@@ -1,8 +1,10 @@
 package com.example.DaNangForum.service.FollowerAndBlock
 
 import com.example.DaNangForum.dto.ApiResponse
+import com.example.DaNangForum.dto.user.UserFollowingDto
 import com.example.DaNangForum.repository.BlockRepository
 import com.example.DaNangForum.repository.FollowerRepository
+import com.example.DaNangForum.repository.MessageRepository
 import com.example.DaNangForum.repository.UserRepository
 import com.example.danangforum.model.Block
 import com.example.danangforum.model.Follower
@@ -11,12 +13,14 @@ import jakarta.transaction.Transactional
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
+import java.time.ZoneId
 
 @Service
 class FollowerService(
     val followerRepository: FollowerRepository,
     val userRepository: UserRepository,
-    val blockRepository: BlockRepository
+    val blockRepository: BlockRepository,
+    val maessageRepository: MessageRepository
 ) {
     fun getFriends(): ResponseEntity<List<User>> {
         val auth = SecurityContextHolder.getContext().authentication
@@ -42,16 +46,29 @@ class FollowerService(
         return ResponseEntity.ok().body(listUser)
     }
 
-    fun getFollowing(): ResponseEntity<List<User>> {
+    fun getFollowing(): ResponseEntity<List<UserFollowingDto>> {
         val auth = SecurityContextHolder.getContext().authentication
         val email = auth.name
-        val user = userRepository.findByEmail(email)
+        val user = userRepository.findByEmail(email) ?: return ResponseEntity.status(404).body(null)
 
-        if (user == null){
-            return ResponseEntity.status(404).body(null)
-        }
         val listUser = followerRepository.findFollowingByUser(user)
-        return ResponseEntity.ok().body(listUser)
+
+        val listUserDto = listUser.map { followedUser ->
+            val lastMessage = maessageRepository
+                .findLastMessageBetweenUsers(user, followedUser)
+                .firstOrNull()
+
+            UserFollowingDto(
+                userId = followedUser.userId,
+                username = followedUser.username,
+                avatar = followedUser.avatar,
+                lastMessage = lastMessage?.content ?: "Chưa có tin nhắn",
+                lastMessageSenderId = lastMessage?.sender?.userId,
+                lastMessageTimestamp = lastMessage?.createAt?.atZone(ZoneId.systemDefault())?.toInstant()?.toEpochMilli()
+            )
+        }
+
+        return ResponseEntity.ok(listUserDto)
     }
 
     fun Follow(userId: Long): ResponseEntity<ApiResponse> {

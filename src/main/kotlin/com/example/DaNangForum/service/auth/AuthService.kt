@@ -96,58 +96,48 @@ class AuthService(
     }
 
     fun loginWithGoogle(token: String): ResponseEntity<AuthResponse> {
-        var newUser = User()
         try {
-            // Xác minh token Google và lấy thông tin người dùng
             val googleUserInfo = verifyGoogleToken(token)
-
-            if (googleUserInfo == null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(AuthResponse(null, null))
-            }
+                ?: return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(AuthResponse(null, null))
 
             val email = googleUserInfo.get("email").asString
+            val name = googleUserInfo.get("name").asString
+            val avatar = googleUserInfo.get("picture").asString
 
-            // Kiểm tra xem người dùng đã tồn tại trong DB chưa
-            val existingUser = userRepository.findByEmail(email)
-
-            val jwtToken: String
-            if (existingUser != null) {
-                // Kiểm tra provider
-                if (existingUser.provider != AuthProvider.GOOGLE) {
-                    // Nếu người dùng đã tồn tại nhưng dùng provider khác, ném lỗi
+            val user = userRepository.findByEmail(email)?.let {
+                // Đã tồn tại
+                if (it.provider != AuthProvider.GOOGLE) {
                     return ResponseEntity.status(HttpStatus.FORBIDDEN).body(AuthResponse(null, null))
                 }
-                // Nếu người dùng đã tồn tại và sử dụng Google, tạo JWT mới
-                jwtToken = jwtUtils.generateAccessToken(existingUser.email)
-            } else {
-                // Nếu chưa tồn tại, tạo mới người dùng và trả về JWT
-                newUser = User(
-                    username = googleUserInfo.get("name").asString,
+                it
+            } ?: run {
+                // Chưa có → tạo mới
+                val newUser = User(
+                    username = name,
                     email = email,
-                    role = "USER", // Có thể tùy chỉnh role ở đây
+                    role = "USER",
                     school = "",
-                    avatar = googleUserInfo.get("picture").asString,
+                    avatar = avatar,
                     phoneNumber = "",
                     bio = "",
                     address = "",
                     create_at = LocalDateTime.now(),
-                    provider = AuthProvider.GOOGLE // Đảm bảo provider là GOOGLE
+                    provider = AuthProvider.GOOGLE
                 )
                 userRepository.save(newUser)
-                jwtToken = jwtUtils.generateAccessToken(newUser.email)
+                newUser
             }
 
-            val refreshToken = jwtUtils.generateRefreshToken(email)
+            val accessToken = jwtUtils.generateAccessToken(user.email)
+            val refreshToken = jwtUtils.generateRefreshToken(user.email)
+            redisService.saveToken(user.email, refreshToken)
 
-            redisService.saveToken(email, refreshToken)
+            val userDto = UserDto(user.userId, user.email, user.username, user.avatar)
 
-            val newUserDto = UserDto(newUser.userId, newUser.email, newUser.username, newUser.avatar,)
-
-            return ResponseEntity.status(200).body(AuthResponse(jwtToken, refreshToken, newUserDto))
+            return ResponseEntity.status(200).body(AuthResponse(accessToken, refreshToken, userDto))
 
         } catch (e: Exception) {
-            // Tạo OAuth2Error và ném OAuth2AuthenticationException nếu xác minh token thất bại
-           return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(AuthResponse(null, null))
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(AuthResponse(null, null))
         }
     }
 
