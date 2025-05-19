@@ -99,7 +99,6 @@ class AuthController(
     @PostMapping("/google")
     fun googleLogin(@RequestParam("token") token: String): ResponseEntity<AuthResponse> {
         return authService.loginWithGoogle(token)
-
     }
 
     @PostMapping("/verifyOtp")
@@ -132,11 +131,10 @@ class AuthController(
     @SecurityRequirement(name = "bearerAuth")
     @PutMapping("/change-password")
     fun changePassword(
-        @RequestParam email: String,
         @RequestParam oldPassword: String,
         @RequestParam newPassword: String
     ): ResponseEntity<ApiResponse> {
-        return authService.changePassword(email, oldPassword, newPassword)
+        return authService.changePassword(oldPassword, newPassword)
     }
 
     @SecurityRequirement(name = "bearerAuth")
@@ -151,7 +149,6 @@ class AuthController(
     @GetMapping("/me")
     fun getCurrentUser(): ResponseEntity<ApiResponse> {
         return authService.getUserInfoFromAccessToken()
-
     }
 
     private fun generateOtp(): String {

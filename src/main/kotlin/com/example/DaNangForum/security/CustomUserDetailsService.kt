@@ -18,7 +18,7 @@ class CustomUserDetailsService(
 
         return org.springframework.security.core.userdetails.User.builder()
             .username(user.email)
-            .password(user.password) // Phải là mật khẩu đã mã hóa
+            .password(user.password?: "") // Phải là mật khẩu đã mã hóa
             .roles(user.role)        // hoặc .authorities(...) nếu bạn dùng authorities
             .build()
     }

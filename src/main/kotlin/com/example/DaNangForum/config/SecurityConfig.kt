@@ -37,6 +37,7 @@ class SecurityConfig(
                 it.requestMatchers(
                     "/api/auth/register",
                     "/api/auth/login",
+                    "/api/admin/auth/login",
                     "/api/auth/google",
                     "/api/auth/sendOtp",
                     "/api/auth/verifyOtp",

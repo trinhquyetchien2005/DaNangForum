@@ -21,6 +21,7 @@ import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException
 import org.springframework.security.oauth2.core.OAuth2Error
 import org.springframework.stereotype.Service
@@ -193,7 +194,9 @@ class AuthService(
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse("New access token", newAccessToken))
     }
 
-    fun changePassword(email: String, oldPassword: String, newPassword: String): ResponseEntity<ApiResponse> {
+    fun changePassword(oldPassword: String, newPassword: String): ResponseEntity<ApiResponse> {
+        val auth = SecurityContextHolder.getContext().authentication
+        val email = auth.name as String
         val user = userRepository.findByEmail(email)
         if (user == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse("User not found", null))

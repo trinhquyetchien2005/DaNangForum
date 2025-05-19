@@ -20,7 +20,7 @@ open class User(
     @Column(unique = true)
     val email: String,
 
-    val role: String,
+    var role: String,
 
     var school: String,
 

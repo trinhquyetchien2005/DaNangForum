@@ -19,5 +19,6 @@ open class Notification(
 
     @Column(name = "type", nullable = false)
     val type: String  // Loại thông báo (ví dụ: "like", "comment", "follow", etc.)
+
 ) {
     constructor() : this(0, User(), "", "")}
