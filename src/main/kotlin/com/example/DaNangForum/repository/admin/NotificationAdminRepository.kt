@@ -1,4 +1,7 @@
 package com.example.DaNangForum.repository.admin
 
-interface NotificationAdminRepository {
+import com.example.danangforum.model.Notification
+import org.springframework.data.jpa.repository.JpaRepository
+
+interface NotificationAdminRepository: JpaRepository<Notification, Long>{
 }

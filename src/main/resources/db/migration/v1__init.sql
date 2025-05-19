@@ -80,10 +80,8 @@ CREATE TABLE groupmember (
 
 CREATE TABLE notification (
                               notification_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-                              user_id BIGINT NOT NULL,
-                              content TEXT,
-                              type VARCHAR(50),
-                              FOREIGN KEY (user_id) REFERENCES user(user_id)
+                              title VARCHAR(255) NOT NULL,
+                              content TEXT NOT NULL
 );
 
 CREATE TABLE groupchat (

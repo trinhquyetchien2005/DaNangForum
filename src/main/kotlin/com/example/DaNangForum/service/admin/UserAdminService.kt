@@ -5,15 +5,18 @@ import com.example.DaNangForum.dto.admin.UserAdminDTO
 import com.example.DaNangForum.repository.admin.UserAdminRepository
 import com.example.danangforum.model.AuthProvider
 import com.example.danangforum.model.User
+import io.lettuce.core.KillArgs.Builder.user
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 
 @Service
 class UserAdminService (
     private val userAdminRepository: UserAdminRepository,
-    adminRepository: UserAdminRepository
+    adminRepository: UserAdminRepository,
+    private val passwordEncoder: PasswordEncoder
 ){
     fun getAll(): ResponseEntity<List<User>> {
         return ResponseEntity(userAdminRepository.findAll(),HttpStatus.OK)
@@ -31,7 +34,6 @@ class UserAdminService (
             school = user.school,
             address = user.address,
             bio = user.bio,
-            avatar = user.avatar,
             dateOfBirth = user.dateOfBirth,
             phoneNumber = user.phoneNumber,
             role = user.role
@@ -40,14 +42,15 @@ class UserAdminService (
         return ResponseEntity.ok(userAdminDTO)
     }
 
-    fun createUser(userAdminDTO: UserAdminDTO): ResponseEntity<UserAdminDTO>{
+    fun createUser(userAdminDTO: User): ResponseEntity<User>{
         val newUser = User(
-            username = userAdminDTO.name,
+            username = userAdminDTO.username,
             email = userAdminDTO.email,
-            role = userAdminDTO.role, // Có thể tùy chỉnh role ở đây
+            role = userAdminDTO.role,
+            password = passwordEncoder.encode(userAdminDTO.password),
             school = userAdminDTO.school,
-            avatar = userAdminDTO.avatar,
             phoneNumber = userAdminDTO.phoneNumber,
+            avatar = "",
             bio = userAdminDTO.bio,
             address = userAdminDTO.address,
             create_at = LocalDateTime.now(),
@@ -60,17 +63,12 @@ class UserAdminService (
 
     fun updateUser(UserId: Long): ResponseEntity<ApiResponse>{
         val user = userAdminRepository.findById(UserId).orElse(null)
-        if(user == null){
-            return ResponseEntity.notFound().build()
-        }
+            ?: return ResponseEntity.notFound().build()
 
-        if(user.role == "ADMIN"){
-            user.role = "USER"
-        }else{
-            user.role = "ADMIN"
-        }
+        user.role = if (user.role == "ADMIN") "USER" else "ADMIN"
+        userAdminRepository.save(user)    // <-- Lưu lại vào DB
 
-        return ResponseEntity(ApiResponse("change role",user.role), HttpStatus.OK)
+        return ResponseEntity.ok(ApiResponse("Change role successful", user.role))
     }
 
     fun deleteUser(userId: Long): ResponseEntity<ApiResponse>{

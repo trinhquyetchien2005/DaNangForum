@@ -9,7 +9,6 @@ data class UserAdminDTO (
     val dateOfBirth: LocalDate?,
     val bio: String,
     val school: String,
-    val avatar: String,
     val phoneNumber: String,
     val role: String
 )

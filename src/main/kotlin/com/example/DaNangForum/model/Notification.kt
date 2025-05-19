@@ -7,18 +7,15 @@ import jakarta.persistence.*
 open class Notification(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val notificationId: Long = 0,  // ID tự động tăng cho bảng notification
+    val notificationId: Long = 0,
 
-    @ManyToOne(fetch = FetchType.EAGER)  // Quan hệ với user (người nhận thông báo)
-    @JoinColumn(name = "user_id", nullable = false)
-    val user: User,  // Người nhận thông báo
+    @Column(nullable = false)
+    val title: String = "",
 
-    @Lob  // Lưu trữ nội dung thông báo dưới dạng văn bản dài
-    @Column(name = "content")
-    val content: String,  // Nội dung thông báo
-
-    @Column(name = "type", nullable = false)
-    val type: String  // Loại thông báo (ví dụ: "like", "comment", "follow", etc.)
-
+    @Lob
+    @Column(nullable = false)
+    val content: String = ""
 ) {
-    constructor() : this(0, User(), "", "")}
+    constructor() : this(0, "", "")
+}
+
