@@ -30,9 +30,7 @@ class UserService(
         userOptional.avatar = requestUser.avatar
         userOptional.dateOfBirth = requestUser.dateOfBirth
         userOptional.school = requestUser.school
-
         val updatedUser = userRepository.save(user)
-
         return ResponseEntity.status(HttpStatus.OK).body(updatedUser)
     }
 

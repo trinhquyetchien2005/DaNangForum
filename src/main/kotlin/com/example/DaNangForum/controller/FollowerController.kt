@@ -1,6 +1,8 @@
 package com.example.DaNangForum.controller
 
 import com.example.DaNangForum.dto.ApiResponse
+import com.example.DaNangForum.dto.user.UserDto
+import com.example.DaNangForum.dto.user.UserFollowingDto
 import com.example.DaNangForum.service.FollowerAndBlock.FollowerService
 import com.example.danangforum.model.User
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
@@ -31,7 +33,7 @@ class FollowerController(val followerService: FollowerService) {
 
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/GetFollowing")
-    fun getFollowing(): ResponseEntity<List<User>> {
+    fun getFollowing(): ResponseEntity<List<UserFollowingDto>> {
         return followerService.getFollowing()
     }
 
